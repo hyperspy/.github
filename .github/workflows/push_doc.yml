@@ -1,0 +1,70 @@
+name: Push Documentation
+
+on:
+  workflow_call:
+    inputs:
+      artefact_name:
+        description: 'The name of the github artefact containing the doc'
+        # if empty string, the current repository name is used
+        default: 'doc_html'
+        type: string
+      repository:
+        description: 'The repository, for example "hyperspy/hyperspy"'
+        # if empty string, the current repository name is used
+        default: ''
+        type: string
+      branch:
+        description: 'The branch to push to, for example "gh-pages"'
+        default: 'gh-pages'
+        type: string
+
+jobs:
+  push_doc:
+    # This build is to push changes to a repository
+    name: Push to gh-pages
+    runs-on: ubuntu-latest
+    permissions:
+      # needs write permission to push the docs to gh-pages
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: gh-pages
+
+      - uses: actions/download-artifact@v3
+        with:
+          name: ${{ inputs.artefact_name }}
+          path: .
+
+      - name: list files
+        run: |
+          ls
+
+      - name: Git status
+        run: |
+          git status
+          git status -s
+          if [[ $(git status -s) ]]; then
+            HAS_CHANGES='true'
+          else
+            HAS_CHANGES='false'
+          fi
+          echo "HAS_CHANGES=${HAS_CHANGES}" >> $GITHUB_ENV
+
+      - name: Commit files
+        # Skip when there is nothing to commit
+        if: ${{ env.HAS_CHANGES == 'true' }}
+        run: |
+          git config --local user.email "github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "github-actions[bot]"
+          git add -A
+          git commit -m "Update docs build" -a
+
+      - name: Push changes
+        if: ${{ env.HAS_CHANGES == 'true' }}
+        uses: ad-m/github-push-action@d91a481090679876dfc4178fef17f286781251df
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          repository: ${{ inputs.repository }}
+          branch: ${{ inputs.branch }}
