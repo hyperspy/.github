@@ -1,0 +1,113 @@
+name: Package & Test
+
+on:
+  workflow_call:
+    inputs:
+      library_name:
+        description: 'The name of library, if different from repository name'
+        # if empty string, the current repository name is used
+        default: ''
+        type: string
+      module_name:
+        description: 'The name of the module to test, if different from repository name'
+        # if empty string, the current repository name is used
+        default: ''
+        type: string
+
+env:
+  PYTHON_VERSION: '3.11'
+
+jobs:
+  package:
+    name: Package
+    runs-on: ubuntu-latest
+    outputs: 
+      REPOSITORY_NAME: ${{ env.REPOSITORY_NAME }}
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: get repository name
+        run: echo "REPOSITORY_NAME=${GITHUB_REPOSITORY#*/}" >> $GITHUB_ENV
+
+      - name: Fetch tags upstream
+        # Needs to fetch the tags from upstream to get the
+        # correct version with setuptools_scm
+        run: |
+          git remote add upstream https://github.com/hyperspy/${{ env.REPOSITORY_NAME }}.git
+          git fetch --prune --unshallow
+          git fetch upstream --tags
+
+      - uses: actions/setup-python@v4
+        name: Install Python
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Display version
+        run: |
+          python --version
+          pip --version
+
+      - name: Install pypa/build pypa/twine
+        run: |
+          pip install build twine
+
+      - name: Build a wheel and sdist
+        run: |
+          python -m build
+
+      - name: Display content dist folder
+        run: |
+          ls -shR dist/
+      
+      - name: Run twin check
+        run: |
+          twine check dist/*
+
+      - uses: actions/upload-artifact@v3
+        with:
+          path: ./dist/*
+          name: dist
+
+  test:
+    name: Test
+    needs: package
+    runs-on: ubuntu-latest
+    env:
+      REPOSITORY_NAME: ${{ needs.package.outputs.REPOSITORY_NAME }}
+      LIBRARY_NAME: ${{ inputs.library_name }}
+      MODULE_NAME: ${{ inputs.module_name }}
+    steps:
+      - uses: actions/setup-python@v4
+        name: Install Python
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - uses: actions/download-artifact@v3
+
+      - name: Display content working folder
+        run: |
+          ls -shR
+
+      - shell: bash
+        name: Get library name
+        run: |
+          if [ '${{ env.LIBRARY_NAME }}' = '' ]; then
+            LIBRARY_NAME=${{ env.REPOSITORY_NAME }}
+            echo "LIBRARY_NAME=${LIBRARY_NAME}" >> $GITHUB_ENV
+          fi
+
+      - shell: bash
+        name: Get module name
+        run: |
+          if [ '${{ env.MODULE_NAME }}' = '' ]; then
+            MODULE_NAME=${{ env.REPOSITORY_NAME }}
+            echo "MODULE_NAME=${MODULE_NAME}" >> $GITHUB_ENV
+          fi
+
+      - name: Install distribution
+        run: |
+          pip install --pre --find-links dist ${{ env.LIBRARY_NAME }}[tests]
+
+      - name: Test distribution
+        run: |
+          pytest --pyargs ${{ env.MODULE_NAME }}
