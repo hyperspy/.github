@@ -2,6 +2,19 @@ name: Build documentation
 
 on:
   workflow_call:
+    inputs:
+      doc_path:
+        description: 'The path to the folder containing the doc'
+        default: './doc'
+        type: string
+      doc_build_path:
+        description: 'The path to the folder containing the build of the doc'
+        default: './doc/_build/html/'
+        type: string
+      pip_extra_doc:
+        description: 'The name of the pip extra to install the doc'
+        default: 'doc'
+        type: string
 
 jobs:
   build:
@@ -9,8 +22,6 @@ jobs:
     # web links are not broken 
     name: Check links and make PR comments
     runs-on: ubuntu-latest
-    env:
-      DOCS_PATH: ./doc/_build/html/
     steps:
       - uses: actions/checkout@v4
         with:
@@ -36,7 +47,7 @@ jobs:
       - name: Install build docs
         shell: bash -l {0}
         run: |
-          pip install .'[doc]'
+          pip install .'[${{ inputs.pip_extra_doc }}]'
       
       # Add sphinx warnings as PR comments
       - uses: sphinx-doc/sphinx-problem-matcher@master
@@ -44,16 +55,16 @@ jobs:
       - name: Build documentation
         shell: bash -l {0}
         run: |
-          cd doc
+          cd ${{ inputs.doc_path }}
           make SPHINXOPTS="-W --keep-going" html
 
       - uses: actions/upload-artifact@v3
         with:
-          path: ${{ env.DOCS_PATH }}
+          path: ${{ inputs.doc_build_path }}
           name: doc_html
 
       - name: Check links
         shell: bash -l {0}
         run: |
-          cd doc
+          cd ${{ inputs.doc_path }}
           make linkcheck
