@@ -25,6 +25,8 @@ jobs:
       REPOSITORY_NAME: ${{ env.REPOSITORY_NAME }}
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: get repository name
         run: echo "REPOSITORY_NAME=${GITHUB_REPOSITORY#*/}" >> $GITHUB_ENV
@@ -35,7 +37,6 @@ jobs:
         # correct version with setuptools_scm
         run: |
           git remote add upstream https://github.com/hyperspy/${{ env.REPOSITORY_NAME }}.git
-          git fetch --prune --unshallow
           git fetch upstream --tags
 
       - uses: actions/setup-python@v4
