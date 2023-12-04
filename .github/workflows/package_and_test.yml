@@ -13,6 +13,11 @@ on:
         # if empty string, the current repository name is used
         default: ''
         type: string
+      use_xvfb:
+        description: 'Whether to install and setup xvfb and pyqt for testing'
+        # if empty string, the current repository name is used
+        default: false
+        type: boolean     
 
 env:
   PYTHON_VERSION: '3.11'
@@ -84,6 +89,25 @@ jobs:
         with:
           python-version: ${{ env.PYTHON_VERSION }}
 
+      - name: Install Ubuntu packages for Qt
+        if: ${{ inputs.use_xvfb }}
+        shell: bash
+        run: |
+          sudo apt-get update
+          sudo apt-get install qtbase5-dev
+          sudo apt-get install libxkbcommon-x11-0
+          sudo apt-get install libxcb-icccm4
+          sudo apt-get install libxcb-image0
+          sudo apt-get install libxcb-keysyms1
+          sudo apt-get install libxcb-randr0
+          sudo apt-get install libxcb-render-util0
+          sudo apt-get install libxcb-xinerama0
+
+      - name: Install pyqt
+        if: ${{ inputs.use_xvfb }}
+        run: |
+          pip install pyqt5 PyQtWebEngine
+
       - uses: actions/download-artifact@v3
 
       - name: Display content working folder
@@ -111,5 +135,12 @@ jobs:
           pip install --pre --find-links dist ${{ env.LIBRARY_NAME }}[tests]
 
       - name: Test distribution
+        if: ${{ inputs.use_xvfb != true }}
         run: |
           pytest --pyargs ${{ env.MODULE_NAME }}
+
+      - name: Test distribution (with xvfb)
+        if: ${{ inputs.use_xvfb }}
+        run: |
+          sudo apt-get install xvfb
+          xvfb-run pytest --pyargs ${{ env.MODULE_NAME }}
