@@ -19,6 +19,11 @@ on:
         description: 'Packages to install in ubuntu'
         default: ''
         type: string
+      doctest:
+        description: 'Run doctest'
+        default: false
+        type: boolean
+
 
 jobs:
   build:
@@ -58,7 +63,14 @@ jobs:
         shell: bash -l {0}
         run: |
           pip install .'[${{ inputs.pip_extra_doc }}]'
-      
+
+      - name: Run doctest
+        shell: bash -l {0}
+        if: ${{ inputs.doctest }}
+        run: |
+          cd ${{ inputs.doc_path }}
+          pytest --doctest-modules --doctest-glob="*.rst" -n 2 -v
+
       # Add sphinx warnings as PR comments
       - uses: sphinx-doc/sphinx-problem-matcher@master
 
