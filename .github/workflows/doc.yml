@@ -49,7 +49,7 @@ jobs:
           sudo apt-get update
           sudo apt-get install ${{ inputs.install_package_ubuntu }}
 
-      - uses: actions/setup-python@v4
+      - uses: actions/setup-python@v5
         name: Install Python
         with:
           python-version: '3.11'
