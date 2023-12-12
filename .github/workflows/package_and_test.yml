@@ -17,7 +17,12 @@ on:
         description: 'Whether to install and setup xvfb and pyqt for testing'
         # if empty string, the current repository name is used
         default: false
-        type: boolean     
+        type: boolean
+      POOCH_BASE_URL:
+        description: 'Set the base url used by POOCH to fetch the data'
+        # if empty string, the default base url is used
+        default: ''
+        type: string
 
 env:
   PYTHON_VERSION: '3.11'
@@ -136,6 +141,8 @@ jobs:
 
       - name: Test distribution
         if: ${{ inputs.use_xvfb != true }}
+        env:
+          POOCH_BASE_URL: ${{ inputs.POOCH_BASE_URL }}
         run: |
           pytest --pyargs ${{ env.MODULE_NAME }}
 
