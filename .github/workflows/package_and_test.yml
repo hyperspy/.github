@@ -113,7 +113,7 @@ jobs:
         run: |
           pip install pyqt5 PyQtWebEngine
 
-      - uses: actions/download-artifact@v3
+      - uses: actions/download-artifact@v4
 
       - name: Display content working folder
         run: |
