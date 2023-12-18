@@ -80,7 +80,7 @@ jobs:
           cd ${{ inputs.doc_path }}
           make SPHINXOPTS="-W --keep-going" html
 
-      - uses: actions/upload-artifact@v3
+      - uses: actions/upload-artifact@v4
         with:
           path: ${{ inputs.doc_build_path }}
           name: doc_html
