@@ -11,6 +11,10 @@ on:
         description: 'The path to the folder containing the build of the doc'
         default: './doc/_build/html/'
         type: string
+      install_dependencies_only:
+        description: 'Only install dependencies listed in `requirement.txt` using pip'
+        default: false
+        type: boolean
       pip_extra_doc:
         description: 'The name of the pip extra to install the doc'
         default: 'doc'
@@ -59,10 +63,17 @@ jobs:
         with:
           python-version: '3.11'
 
-      - name: Install build docs
+      - name: Install library
+        if: ${{ inputs.install_dependencies_only != true }}
         shell: bash -l {0}
         run: |
           pip install .'[${{ inputs.pip_extra_doc }}]'
+
+      - name: Install dependencies
+        if: ${{ inputs.install_dependencies_only }}
+        shell: bash -l {0}
+        run: |
+          pip install -r requirements.txt
 
       - name: Run doctest
         shell: bash -l {0}
