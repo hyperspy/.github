@@ -17,20 +17,28 @@ on:
         description: 'The branch to push to, for example "gh-pages"'
         default: 'gh-pages'
         type: string
+    secrets:
+      access_token:
+        required: true 
+        description: 'The access token required to push a repository: "GITHUB_TOKEN" if same repository of personal access token for separate repository'
+        # See https://github.com/ad-m/github-push-action/tree/master?tab=readme-ov-file#inputs
 
 jobs:
   push_doc:
     # This build is to push changes to a repository
-    name: Push to gh-pages
+    name: Push to ${{ inputs.repository }}/${{ inputs.branch }}
     runs-on: ubuntu-latest
     permissions:
-      # needs write permission to push the docs to gh-pages
+      # needs write permission to push the docs
       contents: write
     steps:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
-          ref: gh-pages
+          repository: ${{ inputs.repository }}
+          ref: ${{ inputs.branch }}
+          # Need to specify token here to enable pushing to other repository
+          token: ${{ secrets.access_token }}
 
       - uses: actions/download-artifact@v4
         with:
@@ -65,6 +73,6 @@ jobs:
         if: ${{ env.HAS_CHANGES == 'true' }}
         uses: ad-m/github-push-action@d91a481090679876dfc4178fef17f286781251df
         with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
+          github_token: ${{ secrets.access_token }}
           repository: ${{ inputs.repository }}
           branch: ${{ inputs.branch }}
