@@ -17,6 +17,10 @@ on:
         description: 'The branch to push to, for example "gh-pages"'
         default: 'gh-pages'
         type: string
+      output_path:
+        description: 'The path where the doc will be written'
+        default: '.'
+        type: string
     secrets:
       access_token:
         required: true 
@@ -43,7 +47,7 @@ jobs:
       - uses: actions/download-artifact@v4
         with:
           name: ${{ inputs.artefact_name }}
-          path: .
+          path: ${{ inputs.output_path }}
 
       - name: list files
         run: |
