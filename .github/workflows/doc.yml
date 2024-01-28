@@ -27,7 +27,11 @@ on:
         description: 'Run doctest'
         default: false
         type: boolean
-
+      use_xvfb:
+        description: 'Whether to install and setup xvfb and pyqt for build the documentation'
+        # if empty string, the current repository name is used
+        default: false
+        type: boolean
 
 jobs:
   build:
@@ -58,6 +62,21 @@ jobs:
           sudo apt-get update
           sudo apt-get install ${{ inputs.install_package_ubuntu }}
 
+      - name: Install Ubuntu packages for Qt
+        if: ${{ inputs.use_xvfb }}
+        shell: bash
+        run: |
+          sudo apt-get update
+          sudo apt-get install qtbase5-dev
+          sudo apt-get install libxkbcommon-x11-0
+          sudo apt-get install libxcb-icccm4
+          sudo apt-get install libxcb-image0
+          sudo apt-get install libxcb-keysyms1
+          sudo apt-get install libxcb-randr0
+          sudo apt-get install libxcb-render-util0
+          sudo apt-get install libxcb-xinerama0
+          sudo apt-get install xvfb
+
       - uses: actions/setup-python@v5
         name: Install Python
         with:
@@ -86,10 +105,17 @@ jobs:
       - uses: sphinx-doc/sphinx-problem-matcher@master
 
       - name: Build documentation
+        if: ${{ inputs.use_xvfb != true }}
         shell: bash -l {0}
         run: |
           cd ${{ inputs.doc_path }}
           make SPHINXOPTS="-W --keep-going" html
+
+      - name: Build documentation (with xvfb)
+        if: ${{ inputs.use_xvfb }}
+        run: |
+          cd ${{ inputs.doc_path }}
+          xvfb-run make SPHINXOPTS="-W --keep-going" html
 
       - uses: actions/upload-artifact@v4
         with:
@@ -97,6 +123,7 @@ jobs:
           name: doc_html
 
       - name: Check links
+        if: ${{ always() }}
         shell: bash -l {0}
         run: |
           cd ${{ inputs.doc_path }}
