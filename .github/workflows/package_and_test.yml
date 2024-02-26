@@ -137,6 +137,9 @@ jobs:
 
       - name: Install distribution
         run: |
+          # alpha release of mpmath breaks sympy
+          # https://github.com/sympy/sympy/issues/26268
+          pip install mpmath
           pip install --pre --find-links dist ${{ env.LIBRARY_NAME }}[tests]
 
       - name: Test distribution
