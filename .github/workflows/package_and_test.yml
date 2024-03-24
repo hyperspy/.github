@@ -23,6 +23,11 @@ on:
         # if empty string, the default base url is used
         default: ''
         type: string
+      PYTEST_ARGS:
+        description: 'The argurment to pass to pytest call'
+        # if empty string, no argument is passed
+        default: ''
+        type: string
 
 env:
   PYTHON_VERSION: '3.11'
@@ -147,11 +152,15 @@ jobs:
         if: ${{ inputs.use_xvfb != true }}
         env:
           POOCH_BASE_URL: ${{ inputs.POOCH_BASE_URL }}
+          PYTEST_ARGS: ${{ inputs.PYTEST_ARGS }}
         run: |
-          pytest --pyargs ${{ env.MODULE_NAME }}
+          pytest --pyargs ${{ env.MODULE_NAME }} ${{ env.PYTEST_ARGS }}
 
       - name: Test distribution (with xvfb)
         if: ${{ inputs.use_xvfb }}
+        env:
+          POOCH_BASE_URL: ${{ inputs.POOCH_BASE_URL }}
+          PYTEST_ARGS: ${{ inputs.PYTEST_ARGS }}
         run: |
           sudo apt-get install xvfb
-          xvfb-run pytest --pyargs ${{ env.MODULE_NAME }}
+          xvfb-run pytest --pyargs ${{ env.MODULE_NAME }} ${{ env.PYTEST_ARGS }}
