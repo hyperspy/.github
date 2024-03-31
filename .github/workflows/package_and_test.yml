@@ -18,6 +18,11 @@ on:
         # if empty string, the current repository name is used
         default: false
         type: boolean
+      EXTRAS:
+        description: 'Optional “variants” (also called extra) to be installed'
+        # if empty string, no argument is passed
+        default: '[tests]'
+        type: string
       POOCH_BASE_URL:
         description: 'Set the base url used by POOCH to fetch the data'
         # if empty string, the default base url is used
@@ -141,12 +146,14 @@ jobs:
           fi
 
       - name: Install distribution
+        env:
+          EXTRAS: ${{ inputs.EXTRAS }}
         run: |
           # alpha release of mpmath breaks sympy
           # https://github.com/sympy/sympy/issues/26268
           # numpy has beta release on pypi.org, install without `--pre`
           pip install mpmath numpy
-          pip install --pre --find-links dist ${{ env.LIBRARY_NAME }}[tests]
+          pip install --pre --find-links dist ${{ env.LIBRARY_NAME }}${{ env.EXTRAS }}
 
       - name: Test distribution
         if: ${{ inputs.use_xvfb != true }}
