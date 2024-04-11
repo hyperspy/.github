@@ -149,10 +149,8 @@ jobs:
         env:
           EXTRAS: ${{ inputs.EXTRAS }}
         run: |
-          # alpha release of mpmath breaks sympy
-          # https://github.com/sympy/sympy/issues/26268
-          # numpy has beta release on pypi.org, install without `--pre`
-          pip install mpmath numpy
+          # pint release version doesn't support numpy 2.0
+          pip install numpy
           pip install --pre --find-links dist ${{ env.LIBRARY_NAME }}${{ env.EXTRAS }}
 
       - name: Test distribution
