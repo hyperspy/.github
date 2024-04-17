@@ -36,6 +36,10 @@ on:
         description: 'SPHINOPTS argument passed to make html'
         default: "-W --keep-going"
         type: string
+      check_links:
+        description: 'Whether to check the links in the documentation'
+        default: true
+        type: boolean
 
 
 jobs:
@@ -128,7 +132,7 @@ jobs:
           name: doc_html
 
       - name: Check links
-        if: ${{ always() }}
+        if: ${{ inputs.check_links }}
         shell: bash -l {0}
         run: |
           cd ${{ inputs.doc_path }}
