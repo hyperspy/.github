@@ -32,6 +32,11 @@ on:
         # if empty string, the current repository name is used
         default: false
         type: boolean
+      SPHINXOPTS:
+        description: 'SPHINOPTS argument passed to make html'
+        default: "-W --keep-going"
+        type: string
+
 
 jobs:
   build:
@@ -109,13 +114,13 @@ jobs:
         shell: bash -l {0}
         run: |
           cd ${{ inputs.doc_path }}
-          make SPHINXOPTS="-W --keep-going" html
+          make SPHINXOPTS=${{ inputs.SPHINXOPTS }} html
 
       - name: Build documentation (with xvfb)
         if: ${{ inputs.use_xvfb }}
         run: |
           cd ${{ inputs.doc_path }}
-          xvfb-run make SPHINXOPTS="-W --keep-going" html
+          xvfb-run make SPHINXOPTS=${{ inputs.SPHINXOPTS }} html
 
       - uses: actions/upload-artifact@v4
         with:
