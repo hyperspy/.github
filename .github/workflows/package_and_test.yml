@@ -33,6 +33,12 @@ on:
         # if empty string, no argument is passed
         default: ''
         type: string
+      ADDITIONAL_TEST_DEPENDENCIES:
+        description: 'Additional dependencies to be installed when testing'
+        # if empty string, no argument is passed
+        default: ''
+        type: string
+  
 
 env:
   PYTHON_VERSION: '3.11'
@@ -152,6 +158,11 @@ jobs:
           # pint release version doesn't support numpy 2.0
           pip install numpy
           pip install --pre --find-links dist ${{ env.LIBRARY_NAME }}${{ env.EXTRAS }}
+
+      - name: Install additional test dependencies
+        if: ${{ inputs.ADDITIONAL_TEST_DEPENDENCIES != ''}}
+        run: |
+          pip install ${{ inputs.ADDITIONAL_TEST_DEPENDENCIES }}
 
       - name: Test distribution
         if: ${{ inputs.use_xvfb != true }}
