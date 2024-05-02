@@ -164,6 +164,10 @@ jobs:
         run: |
           pip install ${{ inputs.ADDITIONAL_TEST_DEPENDENCIES }}
 
+      - name: Pip list
+        run: |
+          pip list
+
       - name: Test distribution
         if: ${{ inputs.use_xvfb != true }}
         env:
