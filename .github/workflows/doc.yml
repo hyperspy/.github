@@ -40,7 +40,10 @@ on:
         description: 'Whether to check the links in the documentation'
         default: true
         type: boolean
-
+      ORGANISATION:
+        description: 'The organisation hosting the upstream code'
+        default: 'hyperspy'
+        type: string  
 
 jobs:
   build:
@@ -58,11 +61,11 @@ jobs:
           echo "REPOSITORY_NAME=${GITHUB_REPOSITORY#*/}" >> $GITHUB_ENV
 
       - name: Fetch tags upstream
-        if: ${{ github.repository_owner != 'hyperspy' }}
+        if: ${{ github.repository_owner != inputs.ORGANISATION }}
         # Needs to fetch the tags from upstream to get the
         # correct version with setuptools_scm
         run: |
-          git remote add upstream https://github.com/hyperspy/${{env.REPOSITORY_NAME}}.git
+          git remote add upstream https://github.com/${{ inputs.ORGANISATION }}/${{ env.REPOSITORY_NAME }}.git
           git fetch upstream --tags
 
       - name: Install package in Ubuntu

@@ -1,7 +1,16 @@
+# This workflow can't be used as reusable workflow because it is 
+# concurrently not compatible with trusted publisher
+# https://github.com/pypa/gh-action-pypi-publish/issues/166
+
 name: Release
 
 on:
-  workflow_call
+  workflow_call:
+    inputs:
+      ORGANISATION:
+        description: 'The organisation hosting the upstream code'
+        default: 'hyperspy'
+        type: string
 
 jobs:
   package_and_test:
@@ -26,7 +35,7 @@ jobs:
       working-directory: dist
 
     - uses: pypa/gh-action-pypi-publish@release/v1
-      if: ${{ startsWith(github.ref, 'refs/tags/') && github.repository_owner == 'hyperspy' }}
+      if: ${{ startsWith(github.ref, 'refs/tags/') && github.repository_owner == inputs.ORGANISATION }}
       # See https://docs.pypi.org/trusted-publishers/using-a-publisher/
 
   create_github_release:
@@ -41,5 +50,5 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
       - name: Create Release
-        if: ${{ startsWith(github.ref, 'refs/tags/') && github.repository_owner == 'hyperspy' }}
+        if: ${{ startsWith(github.ref, 'refs/tags/') && github.repository_owner == inputs.ORGANISATION }}
         uses: softprops/action-gh-release@9d7c94cfd0a1f3ed45544c887983e9fa900f0564

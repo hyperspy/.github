@@ -38,7 +38,10 @@ on:
         # if empty string, no argument is passed
         default: ''
         type: string
-  
+      ORGANISATION:
+        description: 'The organisation hosting the upstream code'
+        default: 'hyperspy'
+        type: string  
 
 env:
   PYTHON_VERSION: '3.11'
@@ -58,11 +61,11 @@ jobs:
         run: echo "REPOSITORY_NAME=${GITHUB_REPOSITORY#*/}" >> $GITHUB_ENV
 
       - name: Fetch tags upstream
-        if: ${{ github.repository_owner != 'hyperspy' }}
+        if: ${{ github.repository_owner != inputs.ORGANISATION }}
         # Needs to fetch the tags from upstream to get the
         # correct version with setuptools_scm
         run: |
-          git remote add upstream https://github.com/hyperspy/${{ env.REPOSITORY_NAME }}.git
+          git remote add upstream https://github.com/${{ inputs.ORGANISATION }}/${{ env.REPOSITORY_NAME }}.git
           git fetch upstream --tags
 
       - uses: actions/setup-python@v5
