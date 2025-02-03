@@ -51,6 +51,9 @@ jobs:
     # web links are not broken 
     name: Check links and make PR comments
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        shell: bash -el {0}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -76,7 +79,6 @@ jobs:
 
       - name: Install Ubuntu packages for Qt
         if: ${{ inputs.use_xvfb }}
-        shell: bash
         run: |
           sudo apt-get update
           sudo apt-get install qtbase5-dev
@@ -96,18 +98,15 @@ jobs:
 
       - name: Install library
         if: ${{ inputs.install_dependencies_only != true }}
-        shell: bash -l {0}
         run: |
-          pip install .'[${{ inputs.pip_extra_doc }}]'
+          pip install .'[${{ inputs.pip_extra_doc }}]' colorama
 
       - name: Install dependencies
         if: ${{ inputs.install_dependencies_only }}
-        shell: bash -l {0}
         run: |
           pip install -r requirements.txt
 
       - name: Run doctest
-        shell: bash -l {0}
         if: ${{ inputs.doctest }}
         run: |
           cd ${{ inputs.doc_path }}
@@ -118,7 +117,6 @@ jobs:
 
       - name: Build documentation
         if: ${{ inputs.use_xvfb != true }}
-        shell: bash -l {0}
         run: |
           cd ${{ inputs.doc_path }}
           make SPHINXOPTS=${{ inputs.SPHINXOPTS }} html
@@ -136,7 +134,6 @@ jobs:
 
       - name: Check links
         if: ${{ inputs.check_links }}
-        shell: bash -l {0}
         run: |
           cd ${{ inputs.doc_path }}
           make linkcheck
