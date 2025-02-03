@@ -117,12 +117,16 @@ jobs:
 
       - name: Build documentation
         if: ${{ inputs.use_xvfb != true }}
+        env:
+          FORCE_COLOR: 1
         run: |
           cd ${{ inputs.doc_path }}
           make SPHINXOPTS=${{ inputs.SPHINXOPTS }} html
 
       - name: Build documentation (with xvfb)
         if: ${{ inputs.use_xvfb }}
+        env:
+          FORCE_COLOR: 1
         run: |
           cd ${{ inputs.doc_path }}
           xvfb-run make SPHINXOPTS=${{ inputs.SPHINXOPTS }} html
@@ -134,6 +138,8 @@ jobs:
 
       - name: Check links
         if: ${{ inputs.check_links }}
+        env:
+          FORCE_COLOR: 1
         run: |
           cd ${{ inputs.doc_path }}
           make linkcheck
