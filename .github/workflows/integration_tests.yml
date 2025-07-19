@@ -1,0 +1,193 @@
+name: Integration tests
+
+on:
+  workflow_call:
+    inputs:
+      EXTENSIONS:
+        description: 'The list of extension to test.'
+        default: 'exspy holospy lumispy'
+        type: string
+      EXTENSION_VERSION:
+        description: 'The version of the extension to test. It can be "release" or "dev".'
+        default: 'release'
+        type: string
+      HYPERSPY_VERSION:
+        description: 'The version of the hyperspy to test. It can be "release", "RnM" or "RnP".'
+        default: 'release'
+        type: string
+      ROSETTASCIIO_VERSION:
+        description: 'The version of the rosettasciio to test. It can be "release" or "dev".'
+        default: 'release'
+        type: string
+      USE_CONDA:
+        description: 'Whether to use conda to install the packages. Set to "false" to use pip.'
+        default: false
+        type: boolean
+
+jobs:
+  integration_test:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        shell: bash -el {0}
+    env:
+      MPLBACKEND: agg
+      TEST_DEPS: pytest pytest-xdist pytest-rerunfailures pytest-instafail
+      PYTHON_VERSION: '3.12'
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Get repository name
+        run: |
+          echo "REPOSITORY_NAME=${GITHUB_REPOSITORY#*/}" >> $GITHUB_ENV
+
+      - uses: conda-incubator/setup-miniconda@v3
+        with:
+          miniforge-version: latest
+          python-version: ${{ env.PYTHON_VERSION }}
+          activate-environment: "test"
+          conda-remove-defaults: "true"
+
+      - name: Conda info
+        run: |
+          conda info
+          conda list
+
+      - name: Install pip and test dependencies
+        run: |
+          conda install pip ${{ env.TEST_DEPS }} 
+
+      - name: Install astra-toolbox, ffmpeg and test dependencies
+        if: ${{ contains(inputs.EXTENSIONS, 'etspy') }}
+        run: |
+          # astra-toolbox and ffmpeg are etspy dependencies
+          conda install astra-toolbox
+
+      - name: Install extensions (release)
+        if: ${{ contains(inputs.EXTENSION_VERSION, 'release') }}
+        run: |
+          if [[ "${{ inputs.USE_CONDA }}" == "true" ]]; then
+            conda install hyperspy-base ${{ inputs.EXTENSIONS }}
+          else
+            pip install hyperspy[all] ${{ inputs.EXTENSIONS }}
+          fi
+
+      - name: Conda list
+        run: |
+          conda list
+
+      - name: Install HyperSpy (${{ inputs.HYPERSPY_VERSION }})
+        if: ${{ env.REPOSITORY_NAME != 'hyperspy' }}
+        run: |
+          if [[ "${{ inputs.HYPERSPY_VERSION }}" == "release" ]]; then
+            if [[ "${{ inputs.USE_CONDA }}" == "true" ]]; then
+              conda install hyperspy-base
+            else
+              pip install "hyperspy[all]"
+            fi
+          elif [[ "${{ inputs.HYPERSPY_VERSION }}" == "RnM" ]]; then
+            pip install "hyperspy[all] @ git+https://github.com/hyperspy/hyperspy.git@RELEASE_next_minor"
+          elif [[ "${{ inputs.HYPERSPY_VERSION }}" == "RnP" ]]; then
+            pip install "hyperspy[all] @ git+https://github.com/hyperspy/hyperspy.git@RELEASE_next_patch"
+          else
+            echo "Unknown HYPERSPY_VERSION: ${{ inputs.HYPERSPY_VERSION }}"
+            exit 1
+          fi
+
+      - name: Install RosettaSciIO (${{ inputs.ROSETTASCIIO_VERSION }})
+        if: ${{ env.REPOSITORY_NAME != 'rosettasciio' }}
+        run: |
+          if [[ "${{ inputs.ROSETTASCIIO_VERSION }}" == "release" ]]; then
+            if [[ "${{ inputs.USE_CONDA }}" == "true" ]]; then
+              conda install rosettasciio-base
+            else
+              pip install "rosettasciio[all]"
+            fi
+          elif [[ "${{ inputs.ROSETTASCIIO_VERSION }}" == "dev" ]]; then
+            pip install "rosettasciio[all] @ git+https://github.com/hyperspy/rosettasciio.git@main"
+          else
+            echo "Unknown ROSETTASCIIO_VERSION: ${{ inputs.ROSETTASCIIO_VERSION }}"
+            exit 1
+          fi
+
+      - name: Install Extension (dev)
+        if: ${{ inputs.EXTENSION_VERSION == 'dev' }}
+        run: |
+          for ext in $(echo "${{ inputs.EXTENSIONS }}" | tr ' ' '\n'); do
+            if [[ "$ext" == "exspy" ]]; then
+              pip install "https://github.com/hyperspy/exspy/archive/main.zip"
+            elif [[ "$ext" == "holospy" ]]; then
+              pip install "https://github.com/hyperspy/holospy/archive/main.zip"
+            elif [[ "$ext" == "lumispy" ]]; then
+              pip install "https://github.com/lumispy/lumispy/archive/main.zip"
+            elif [[ "$ext" == "pyxem" ]]; then
+              pip install "https://github.com/pyxem/pyxem/archive/main.zip"
+            elif [[ "$ext" == "kikuchipy" ]]; then
+              pip install "https://github.com/pyxem/kikuchipy/archive/develop.zip"
+            elif [[ "$ext" == "atomap" ]]; then
+              pip install "https://github.com/atomap-dev/atomap/archive/main.zip"
+            elif [[ "$ext" == "etspy" ]]; then
+              pip install "https://github.com/usnistgov/etspy/archive/master.zip"
+            else
+              echo "Unknown extension: $ext"
+              exit 1
+            fi
+          done
+
+      - name: Conda list
+        run: |
+          conda list
+
+      - name: Install ${{ env.REPOSITORY_NAME }}
+        run: |
+          pip install -e .
+
+      - name: Conda list
+        run: |
+          conda list
+
+      - name: Run HyperSpy Test Suite
+        if: ${{ env.REPOSITORY_NAME != 'hyperspy' }}
+        run: |
+          python -m pytest --pyargs hyperspy
+
+      - name: Run RosettaSciIO Test Suite
+        if: ${{ env.REPOSITORY_NAME != 'rosettasciio' }}
+        run: |
+          python -m pytest --pyargs rosettasciio
+
+      - name: Run LumiSpy Test Suite
+        if: ${{ contains(inputs.EXTENSIONS, 'lumispy') && env.REPOSITORY_NAME != 'lumispy' }}
+        run: |
+          python -m pytest --pyargs lumispy
+
+      - name: Run Pyxem Test Suite
+        if: ${{ contains(inputs.EXTENSIONS, 'pyxem') && env.REPOSITORY_NAME != 'pyxem' }}
+        run: |
+          python -m pytest --pyargs pyxem
+
+      - name: Run holospy Test Suite
+        if: ${{ contains(inputs.EXTENSIONS, 'holospy') && env.REPOSITORY_NAME != 'holospy'  }}
+        run: |
+          python -m pytest --pyargs holospy
+
+      - name: Run exSpy Test Suite
+        if: ${{ contains(inputs.EXTENSIONS, 'exspy') && env.REPOSITORY_NAME != 'exspy' }}
+        run: |
+          python -m pytest --pyargs exspy
+
+      - name: Run kikuchipy Test Suite
+        if: ${{ contains(inputs.EXTENSIONS, 'kikuchipy') && env.REPOSITORY_NAME != 'kikuchipy' }}
+        run: |
+          python -m pytest --pyargs kikuchipy
+
+      - name: Run etspy Test Suite
+        if: ${{ contains(inputs.EXTENSIONS, 'etspy') && env.REPOSITORY_NAME != 'etspy' }}
+        run: |
+          python -m pytest --pyargs etspy
+
+      - name: Run atomap Test Suite
+        if: ${{ contains(inputs.EXTENSIONS, 'atomap') && env.REPOSITORY_NAME != 'atomap'   }}
+        run: |
+          python -m pytest --pyargs atomap
