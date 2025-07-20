@@ -23,6 +23,18 @@ on:
         description: 'Whether to use conda to install the packages. Set to "false" to use pip.'
         default: false
         type: boolean
+      NUMBA_DEV:
+        description: 'Whether to install the numba development version.'
+        default: false
+        type: boolean
+      DEPENDENCIES_PRE_RELEASE:
+        description: 'List of dependencies to install pre-release installed with packages from pypi.org.'
+        default: '' # e.g. matplotlib scipy scikit-learn sympy h5py scikit-image numba
+        type: string
+      DEPENDENCIES_DEV:
+        description: 'List of dependencies to install from scientific-python-nightly-wheels.'
+        default: '' # e.g. matplotlib scipy scikit-learn sympy h5py scikit-image 
+        type: string
 
 jobs:
   integration_test:
@@ -80,6 +92,23 @@ jobs:
         run: |
           conda install pip ${{ env.TEST_DEPS }} 
 
+      - name: Install numba development version
+        if: ${{ inputs.NUMBA_DEV }}
+        run: |
+          mamba install -c numba/label/dev numba
+
+      - name: Install dependencies pre-release version
+        if: ${{ inputs.DEPENDENCIES_PRE_RELEASE }}
+        run: |
+          pip install --upgrade --pre ${{ inputs.DEPENDENCIES_PRE_RELEASE }}
+
+      - name: Install dependencies development version
+        if: ${{ inputs.DEPENDENCIES_DEV }}
+        run: |
+          pip install --upgrade --pre --extra-index-url \
+          https://pypi.anaconda.org/scientific-python-nightly-wheels/simple \
+          ${{ inputs.DEPENDENCIES_DEV }}
+
       - name: Get the number of CPUs
         id: cpus
         run: |
@@ -98,7 +127,7 @@ jobs:
           PYTEST_ARGS="--reruns 3 -n ${{ steps.cpus.outputs.count }}"
           echo "PYTEST_ARGS=${PYTEST_ARGS}" >> $GITHUB_ENV
 
-      - name: Install astra-toolbox, ffmpeg and test dependencies
+      - name: Install astra-toolbox and test dependencies
         if: ${{ contains(inputs.EXTENSIONS, 'etspy') }}
         run: |
           # astra-toolbox is an etspy dependency
