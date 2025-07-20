@@ -32,7 +32,7 @@ jobs:
         shell: bash -el {0}
     env:
       MPLBACKEND: agg
-      TEST_DEPS: pytest pytest-xdist pytest-rerunfailures pytest-instafail
+      TEST_DEPS: pytest pytest-xdist pytest-rerunfailures pytest-instafail pytest-mpl
       PYTHON_VERSION: '3.12'
 
     steps:
@@ -57,6 +57,24 @@ jobs:
       - name: Install pip and test dependencies
         run: |
           conda install pip ${{ env.TEST_DEPS }} 
+
+      - name: Get the number of CPUs
+        id: cpus
+        run: |
+          import os, platform
+          num_cpus = os.cpu_count()
+          print(f"Number of CPU: {num_cpus}")
+          print(f"Architecture: {platform.machine()}")
+          output_file = os.environ["GITHUB_OUTPUT"]
+          with open(output_file, "a", encoding="utf-8") as output_stream:
+              output_stream.write(f"count={num_cpus}\n")
+        shell: python
+
+      - name: Set pytest options
+        shell: bash
+        run: |
+          PYTEST_ARGS="--reruns 3 -n ${{ steps.cpus.outputs.count }}"
+          echo "PYTEST_ARGS=${PYTEST_ARGS}" >> $GITHUB_ENV
 
       - name: Install astra-toolbox, ffmpeg and test dependencies
         if: ${{ contains(inputs.EXTENSIONS, 'etspy') }}
@@ -115,19 +133,19 @@ jobs:
         if: ${{ inputs.EXTENSION_VERSION == 'dev' }}
         run: |
           for ext in $(echo "${{ inputs.EXTENSIONS }}" | tr ' ' '\n'); do
-            if [[ "$ext" == "exspy" ]]; then
+            if [[ "$ext" == "exspy" && "${{ env.REPOSITORY_NAME }}" != "exspy" ]]; then
               pip install "https://github.com/hyperspy/exspy/archive/main.zip"
-            elif [[ "$ext" == "holospy" ]]; then
+            elif [[ "$ext" == "holospy" && "${{ env.REPOSITORY_NAME }}" != "holospy" ]]; then
               pip install "https://github.com/hyperspy/holospy/archive/main.zip"
-            elif [[ "$ext" == "lumispy" ]]; then
+            elif [[ "$ext" == "lumispy" && "${{ env.REPOSITORY_NAME }}" != "lumispy" ]]; then
               pip install "https://github.com/lumispy/lumispy/archive/main.zip"
-            elif [[ "$ext" == "pyxem" ]]; then
+            elif [[ "$ext" == "pyxem" && "${{ env.REPOSITORY_NAME }}" != "pyxem" ]]; then
               pip install "https://github.com/pyxem/pyxem/archive/main.zip"
-            elif [[ "$ext" == "kikuchipy" ]]; then
+            elif [[ "$ext" == "kikuchipy" && "${{ env.REPOSITORY_NAME }}" != "kikuchipy" ]]; then
               pip install "https://github.com/pyxem/kikuchipy/archive/develop.zip"
-            elif [[ "$ext" == "atomap" ]]; then
+            elif [[ "$ext" == "atomap" && "${{ env.REPOSITORY_NAME }}" != "atomap" ]]; then
               pip install "https://github.com/atomap-dev/atomap/archive/main.zip"
-            elif [[ "$ext" == "etspy" ]]; then
+            elif [[ "$ext" == "etspy" && "${{ env.REPOSITORY_NAME }}" != "etspy" ]]; then
               pip install "https://github.com/usnistgov/etspy/archive/master.zip"
             else
               echo "Unknown extension: $ext"
@@ -150,12 +168,12 @@ jobs:
       - name: Run HyperSpy Test Suite
         if: ${{ env.REPOSITORY_NAME != 'hyperspy' }}
         run: |
-          python -m pytest --pyargs hyperspy
+          python -m pytest --pyargs hyperspy ${{ env.PYTEST_ARGS }}
 
       - name: Run RosettaSciIO Test Suite
         if: ${{ env.REPOSITORY_NAME != 'rosettasciio' }}
         run: |
-          python -m pytest --pyargs rosettasciio
+          python -m pytest --pyargs rsciio ${{ env.PYTEST_ARGS }}
 
       - name: Run LumiSpy Test Suite
         if: ${{ contains(inputs.EXTENSIONS, 'lumispy') && env.REPOSITORY_NAME != 'lumispy' }}
