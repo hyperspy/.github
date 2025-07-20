@@ -19,6 +19,10 @@ on:
         description: 'The version of the rosettasciio to test. It can be "release" or "dev".'
         default: 'release'
         type: string
+      INSTALL_SOURCE_FROM_REPOSITORY:
+        description: 'Whether to install the source code of the current repository.'
+        default: true
+        type: boolean
       USE_CONDA:
         description: 'Whether to use conda to install the packages. Set to "false" to use pip.'
         default: false
@@ -32,6 +36,7 @@ on:
         default: '' # e.g. matplotlib scipy scikit-learn sympy h5py scikit-image numba
         type: string
       DEPENDENCIES_DEV:
+        # Dev version from https://anaconda.org/scientific-python-nightly-wheels/
         description: 'List of dependencies to install from scientific-python-nightly-wheels.'
         default: '' # e.g. matplotlib scipy scikit-learn sympy h5py scikit-image 
         type: string
@@ -210,6 +215,7 @@ jobs:
           conda list
 
       - name: Install ${{ env.REPOSITORY_NAME }} (local)
+        if: ${{ inputs.INSTALL_SOURCE_FROM_REPOSITORY }}
         run: |
           pip install -e .
 
