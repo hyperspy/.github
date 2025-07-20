@@ -228,47 +228,47 @@ jobs:
           conda list
 
       - name: Run HyperSpy Test Suite
-        if: ${{ always() && env.REPOSITORY_NAME != 'hyperspy' }}
+        if: ${{ always() }}
         run: |
           python -m pytest --pyargs hyperspy ${{ env.PYTEST_ARGS }}
 
       - name: Run RosettaSciIO Test Suite
-        if: ${{ always() && env.REPOSITORY_NAME != 'rosettasciio' }}
+        if: ${{ always() }}
         run: |
           # mrcz and pyusid doesn't support numpy 2
           python -m pytest --pyargs rsciio ${{ env.PYTEST_ARGS }} -k "not test_mrcz.py and not test_usid.py"
 
       - name: Run LumiSpy Test Suite
-        if: ${{ always() && contains(inputs.EXTENSIONS, 'lumispy') && env.REPOSITORY_NAME != 'lumispy' }}
+        if: ${{ always() && contains(inputs.EXTENSIONS, 'lumispy')}}
         run: |
           python -m pytest --pyargs lumispy
 
       - name: Run Pyxem Test Suite
-        if: ${{ always() && contains(inputs.EXTENSIONS, 'pyxem') && env.REPOSITORY_NAME != 'pyxem' }}
+        if: ${{ always() && contains(inputs.EXTENSIONS, 'pyxem') }}
         run: |
           python -m pytest --pyargs pyxem
 
       - name: Run holospy Test Suite
-        if: ${{ always() && contains(inputs.EXTENSIONS, 'holospy') && env.REPOSITORY_NAME != 'holospy'  }}
+        if: ${{ always() && contains(inputs.EXTENSIONS, 'holospy') }}
         run: |
           python -m pytest --pyargs holospy
 
       - name: Run exSpy Test Suite
-        if: ${{ always() && contains(inputs.EXTENSIONS, 'exspy') && env.REPOSITORY_NAME != 'exspy' }}
+        if: ${{ always() && contains(inputs.EXTENSIONS, 'exspy') }}
         run: |
           python -m pytest --pyargs exspy
 
       - name: Run kikuchipy Test Suite
-        if: ${{ always() && contains(inputs.EXTENSIONS, 'kikuchipy') && env.REPOSITORY_NAME != 'kikuchipy' }}
+        if: ${{ always() && contains(inputs.EXTENSIONS, 'kikuchipy') }}
         run: |
           python -m pytest --pyargs kikuchipy
 
       - name: Run etspy Test Suite
-        if: ${{ always() && contains(inputs.EXTENSIONS, 'etspy') && env.REPOSITORY_NAME != 'etspy' }}
+        if: ${{ always() && contains(inputs.EXTENSIONS, 'etspy') }}
         run: |
           python -m pytest --pyargs etspy
 
       - name: Run atomap Test Suite
-        if: ${{ always() && contains(inputs.EXTENSIONS, 'atomap') && env.REPOSITORY_NAME != 'atomap' }}
+        if: ${{ always() && contains(inputs.EXTENSIONS, 'atomap') }}
         run: |
           python -m pytest --pyargs atomap -k "not test_gui_function_qt"
