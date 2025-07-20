@@ -234,7 +234,8 @@ jobs:
       - name: Run RosettaSciIO Test Suite
         if: ${{ always() && env.REPOSITORY_NAME != 'rosettasciio' }}
         run: |
-          python -m pytest --pyargs rsciio ${{ env.PYTEST_ARGS }}
+          # mrcz and pyusid doesn't support numpy 2
+          python -m pytest --pyargs rsciio ${{ env.PYTEST_ARGS }} -k "not test_mrcz.py and not test_usid.py"
 
       - name: Run LumiSpy Test Suite
         if: ${{ always() && contains(inputs.EXTENSIONS, 'lumispy') && env.REPOSITORY_NAME != 'lumispy' }}
