@@ -49,6 +49,27 @@ jobs:
           activate-environment: "test"
           conda-remove-defaults: "true"
 
+      - name: Cache pip
+        uses: actions/cache@v4
+        env:
+          # Increase this value to reset cache
+          CACHE_NUMBER: 0
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip--${{ env.CACHE_NUMBER }}
+          restore-keys: |
+            ${{ runner.os }}-pip-${{ env.CACHE_NUMBER }}
+
+      - name: Cache conda
+        uses: actions/cache@v4
+        env:
+          # Increase this value to reset cache
+          CACHE_NUMBER: 0
+        with:
+          path: ~/conda_pkgs_dir
+          key:
+            ${{ runner.os }}-conda-${{ env.CACHE_NUMBER }}
+
       - name: Conda info
         run: |
           conda info
@@ -157,7 +178,7 @@ jobs:
         run: |
           conda list
 
-      - name: Install ${{ env.REPOSITORY_NAME }}
+      - name: Install ${{ env.REPOSITORY_NAME }} (local)
         run: |
           pip install -e .
 
@@ -166,46 +187,46 @@ jobs:
           conda list
 
       - name: Run HyperSpy Test Suite
-        if: ${{ env.REPOSITORY_NAME != 'hyperspy' }}
+        if: ${{ always() && env.REPOSITORY_NAME != 'hyperspy' }}
         run: |
           python -m pytest --pyargs hyperspy ${{ env.PYTEST_ARGS }}
 
       - name: Run RosettaSciIO Test Suite
-        if: ${{ env.REPOSITORY_NAME != 'rosettasciio' }}
+        if: ${{ always() && env.REPOSITORY_NAME != 'rosettasciio' }}
         run: |
           python -m pytest --pyargs rsciio ${{ env.PYTEST_ARGS }}
 
       - name: Run LumiSpy Test Suite
-        if: ${{ contains(inputs.EXTENSIONS, 'lumispy') && env.REPOSITORY_NAME != 'lumispy' }}
+        if: ${{ always() && contains(inputs.EXTENSIONS, 'lumispy') && env.REPOSITORY_NAME != 'lumispy' }}
         run: |
           python -m pytest --pyargs lumispy
 
       - name: Run Pyxem Test Suite
-        if: ${{ contains(inputs.EXTENSIONS, 'pyxem') && env.REPOSITORY_NAME != 'pyxem' }}
+        if: ${{ always() && contains(inputs.EXTENSIONS, 'pyxem') && env.REPOSITORY_NAME != 'pyxem' }}
         run: |
           python -m pytest --pyargs pyxem
 
       - name: Run holospy Test Suite
-        if: ${{ contains(inputs.EXTENSIONS, 'holospy') && env.REPOSITORY_NAME != 'holospy'  }}
+        if: ${{ always() && contains(inputs.EXTENSIONS, 'holospy') && env.REPOSITORY_NAME != 'holospy'  }}
         run: |
           python -m pytest --pyargs holospy
 
       - name: Run exSpy Test Suite
-        if: ${{ contains(inputs.EXTENSIONS, 'exspy') && env.REPOSITORY_NAME != 'exspy' }}
+        if: ${{ always() && contains(inputs.EXTENSIONS, 'exspy') && env.REPOSITORY_NAME != 'exspy' }}
         run: |
           python -m pytest --pyargs exspy
 
       - name: Run kikuchipy Test Suite
-        if: ${{ contains(inputs.EXTENSIONS, 'kikuchipy') && env.REPOSITORY_NAME != 'kikuchipy' }}
+        if: ${{ always() && contains(inputs.EXTENSIONS, 'kikuchipy') && env.REPOSITORY_NAME != 'kikuchipy' }}
         run: |
           python -m pytest --pyargs kikuchipy
 
       - name: Run etspy Test Suite
-        if: ${{ contains(inputs.EXTENSIONS, 'etspy') && env.REPOSITORY_NAME != 'etspy' }}
+        if: ${{ always() && contains(inputs.EXTENSIONS, 'etspy') && env.REPOSITORY_NAME != 'etspy' }}
         run: |
           python -m pytest --pyargs etspy
 
       - name: Run atomap Test Suite
-        if: ${{ contains(inputs.EXTENSIONS, 'atomap') && env.REPOSITORY_NAME != 'atomap'   }}
+        if: ${{ always() && contains(inputs.EXTENSIONS, 'atomap') && env.REPOSITORY_NAME != 'atomap' }}
         run: |
           python -m pytest --pyargs atomap
