@@ -40,10 +40,14 @@ on:
         description: 'List of dependencies to install from scientific-python-nightly-wheels.'
         default: '' # e.g. matplotlib scipy scikit-learn sympy h5py scikit-image 
         type: string
+      PLATFORM:
+        description: 'The platform to run the tests on.'
+        default: 'ubuntu-latest'
+        type: string
 
 jobs:
   integration_test:
-    runs-on: ubuntu-latest
+    runs-on: ${{ inputs.PLATFORM }}
     defaults:
       run:
         shell: bash -el {0}
