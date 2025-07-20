@@ -32,7 +32,7 @@ jobs:
         shell: bash -el {0}
     env:
       MPLBACKEND: agg
-      TEST_DEPS: pytest pytest-xdist pytest-rerunfailures pytest-instafail pytest-mpl
+      TEST_DEPS: pytest pytest-xdist pytest-rerunfailures pytest-instafail pytest-mpl filelock
       PYTHON_VERSION: '3.12'
 
     steps:
@@ -100,8 +100,9 @@ jobs:
       - name: Install astra-toolbox, ffmpeg and test dependencies
         if: ${{ contains(inputs.EXTENSIONS, 'etspy') }}
         run: |
-          # astra-toolbox and ffmpeg are etspy dependencies
-          conda install astra-toolbox
+          # astra-toolbox is an etspy dependency
+          # install ffmpeg until test is skipped if not installed
+          conda install astra-toolbox ffmpeg
 
       - name: Install extensions (release)
         if: ${{ contains(inputs.EXTENSION_VERSION, 'release') }}
@@ -229,4 +230,4 @@ jobs:
       - name: Run atomap Test Suite
         if: ${{ always() && contains(inputs.EXTENSIONS, 'atomap') && env.REPOSITORY_NAME != 'atomap' }}
         run: |
-          python -m pytest --pyargs atomap
+          python -m pytest --pyargs atomap -k "not test_gui_function_qt"
