@@ -144,7 +144,7 @@ jobs:
               pip install "rosettasciio[all]"
             fi
           elif [[ "${{ inputs.ROSETTASCIIO_VERSION }}" == "dev" ]]; then
-            pip install "rosettasciio[all] @ git+https://github.com/hyperspy/rosettasciio.git@main"
+            pip install "rosettasciio[all] @ git+https://github.com/hyperspy/rosettasciio.git"
           else
             echo "Unknown ROSETTASCIIO_VERSION: ${{ inputs.ROSETTASCIIO_VERSION }}"
             exit 1
@@ -155,19 +155,19 @@ jobs:
         run: |
           for ext in $(echo "${{ inputs.EXTENSIONS }}" | tr ' ' '\n'); do
             if [[ "$ext" == "exspy" && "${{ env.REPOSITORY_NAME }}" != "exspy" ]]; then
-              pip install "https://github.com/hyperspy/exspy/archive/main.zip"
+              pip install "exspy @ git+https://github.com/hyperspy/exspy.git"
             elif [[ "$ext" == "holospy" && "${{ env.REPOSITORY_NAME }}" != "holospy" ]]; then
-              pip install "https://github.com/hyperspy/holospy/archive/main.zip"
+              pip install "holospy @ git+https://github.com/hyperspy/holospy.git"
             elif [[ "$ext" == "lumispy" && "${{ env.REPOSITORY_NAME }}" != "lumispy" ]]; then
-              pip install "https://github.com/lumispy/lumispy/archive/main.zip"
+              pip install "lumispy @ git+https://github.com/lumispy/lumispy.git"
             elif [[ "$ext" == "pyxem" && "${{ env.REPOSITORY_NAME }}" != "pyxem" ]]; then
-              pip install "https://github.com/pyxem/pyxem/archive/main.zip"
+              pip install "pyxem @ git+https://github.com/pyxem/pyxem.git"
             elif [[ "$ext" == "kikuchipy" && "${{ env.REPOSITORY_NAME }}" != "kikuchipy" ]]; then
-              pip install "https://github.com/pyxem/kikuchipy/archive/develop.zip"
+              pip install "kikuchipy @ git+https://github.com/pyxem/kikuchipy.git"
             elif [[ "$ext" == "atomap" && "${{ env.REPOSITORY_NAME }}" != "atomap" ]]; then
-              pip install "https://github.com/atomap-dev/atomap/archive/main.zip"
+              pip install "atomap @ git+https://github.com/atomap-dev/atomap.git"
             elif [[ "$ext" == "etspy" && "${{ env.REPOSITORY_NAME }}" != "etspy" ]]; then
-              pip install "https://github.com/usnistgov/etspy/archive/master.zip"
+              pip install "etspy @ git+https://github.com/usnistgov/etspy.git"
             else
               echo "Unknown extension: $ext"
               exit 1
