@@ -231,7 +231,9 @@ jobs:
             elif [[ "$ext" == "pyxem" && "${{ env.REPOSITORY_NAME }}" != "pyxem" ]]; then
               pip install "pyxem @ git+https://github.com/pyxem/pyxem.git"
             elif [[ "$ext" == "kikuchipy" && "${{ env.REPOSITORY_NAME }}" != "kikuchipy" ]]; then
-              pip install "kikuchipy @ git+https://github.com/pyxem/kikuchipy.git"
+              # pip install "kikuchipy @ git+https://github.com/pyxem/kikuchipy.git"
+              # fix allow_download issue
+              pip install "kikuchipy @ git+https://github.com/ericpre/kikuchipy.git@fix_allow_download_test_suite"
             elif [[ "$ext" == "atomap" && "${{ env.REPOSITORY_NAME }}" != "atomap" ]]; then
               # pip install "atomap @ git+https://github.com/atomap-dev/atomap.git"
               # https://github.com/atomap-dev/atomap/pull/2
@@ -307,7 +309,8 @@ jobs:
       - name: Run kikuchipy Test Suite
         if: ${{ always() && contains(inputs.EXTENSIONS, 'kikuchipy') }}
         run: |
-          python -m pytest --pyargs kikuchipy
+          # https://github.com/pyxem/kikuchipy/issues/707
+          python -m pytest --pyargs kikuchipy -k "not test_not_allow_download_raises"
 
       - name: Run etspy Test Suite
         if: ${{ always() && contains(inputs.EXTENSIONS, 'etspy') }}
