@@ -5,7 +5,7 @@ on:
     inputs:
       EXTENSIONS:
         description: 'The list of extension to test.'
-        default: 'exspy holospy lumispy'
+        default: 'exspy holospy lumispy hyperspy-gui-ipywidgets hyperspy-gui-traitsui'
         type: string
       EXTENSION_VERSION:
         description: 'The version of the extension to test. It can be "release" or "dev".'
@@ -227,6 +227,10 @@ jobs:
               pip install "exspy @ git+https://github.com/hyperspy/exspy.git"
             elif [[ "$ext" == "holospy" && "${{ env.REPOSITORY_NAME }}" != "holospy" ]]; then
               pip install "holospy @ git+https://github.com/hyperspy/holospy.git"
+            elif [[ "$ext" == "hyperspy-gui-ipywidgets" && "${{ env.REPOSITORY_NAME }}" != "hyperspy_gui_ipywidgets" ]]; then
+              pip install "hyperspy-gui-ipywidgets @ git+https://github.com/hyperspy/hyperspy_gui_ipywidgets.git"
+            elif [[ "$ext" == "hyperspy-gui-traitsui" && "${{ env.REPOSITORY_NAME }}" != "hyperspy_gui_traitsui" ]]; then
+              pip install "hyperspy-gui-traitsui @ git+https://github.com/hyperspy/hyperspy_gui_traitsui.git"
             elif [[ "$ext" == "lumispy" && "${{ env.REPOSITORY_NAME }}" != "lumispy" ]]; then
               pip install "lumispy @ git+https://github.com/lumispy/lumispy.git"
             elif [[ "$ext" == "pyxem" && "${{ env.REPOSITORY_NAME }}" != "pyxem" ]]; then
@@ -293,6 +297,16 @@ jobs:
         if: ${{ always() && contains(inputs.EXTENSIONS, 'lumispy')}}
         run: |
           python -m pytest --pyargs lumispy
+
+      - name: Run hyperspy_gui_ipywidgets Test Suite
+        if: ${{ always() && contains(inputs.EXTENSIONS, 'hyperspy-gui-ipywidgets') }}
+        run: |
+          python -m pytest --pyargs hyperspy_gui_ipywidgets
+
+      - name: Run hyperspy_gui_traitsui Test Suite
+        if: ${{ always() && contains(inputs.EXTENSIONS, 'hyperspy-gui-traitsui') }}
+        run: |
+          python -m pytest --pyargs hyperspy_gui_traitsui
 
       - name: Run Pyxem Test Suite
         if: ${{ always() && contains(inputs.EXTENSIONS, 'pyxem') }}
