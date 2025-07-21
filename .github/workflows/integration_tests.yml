@@ -176,9 +176,9 @@ jobs:
         if: ${{ contains(inputs.EXTENSION_VERSION, 'release') }}
         run: |
           if [[ "${{ inputs.USE_CONDA }}" == "true" ]]; then
-            conda install hyperspy-base ${{ inputs.EXTENSIONS }}
+            conda install ${{ inputs.EXTENSIONS }}
           else
-            pip install hyperspy[all] ${{ inputs.EXTENSIONS }}
+            pip install ${{ inputs.EXTENSIONS }}
           fi
 
       - name: Conda list
@@ -190,7 +190,7 @@ jobs:
         run: |
           if [[ "${{ inputs.HYPERSPY_VERSION }}" == "release" ]]; then
             if [[ "${{ inputs.USE_CONDA }}" == "true" ]]; then
-              conda install hyperspy-base
+              conda install hyperspy
             else
               pip install "hyperspy[all]"
             fi
@@ -208,7 +208,7 @@ jobs:
         run: |
           if [[ "${{ inputs.ROSETTASCIIO_VERSION }}" == "release" ]]; then
             if [[ "${{ inputs.USE_CONDA }}" == "true" ]]; then
-              conda install rosettasciio-base
+              conda install rosettasciio
             else
               pip install "rosettasciio[all]"
             fi
