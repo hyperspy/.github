@@ -87,11 +87,7 @@ jobs:
 
       - name: Install pip and test dependencies
         run: |
-          conda install pip pooch ${{ env.TEST_DEPS }} 
-
-      - name: Get pooch cache location
-        run: |
-          python -c "import pooch; print(f'POOCH_CACHE={pooch.os_cache()}', end='')" >> $GITHUB_ENV
+          conda install pip ${{ env.TEST_DEPS }} 
 
       - name: Cache pip
         uses: actions/cache@v4
@@ -113,16 +109,6 @@ jobs:
           path: ~/conda_pkgs_dir
           key:
             ${{ runner.os }}-conda-${{ env.CACHE_NUMBER }}
-
-      - name: Cache pooch
-        uses: actions/cache@v4
-        env:
-          # Increase this value to reset cache
-          CACHE_NUMBER: 0
-        with:
-          path: ${{ env.POOCH_CACHE }}
-          key:
-            ${{ runner.os }}-pooch-${{ env.CACHE_NUMBER }}
 
       - name: Conda info
         run: |
@@ -263,6 +249,22 @@ jobs:
       - name: Conda list
         run: |
           conda list
+
+      - name: Get rosettasciio tests data location
+        if: ${{ env.REPOSITORY_NAME != 'rosettasciio' }} # only for repositories that are not rosettasciio
+        run: |
+          python -c "from rsciio.tests import registry; print(f'ROSETTASCIIO_TEST_DATA={str(registry.TESTS_PATH / \"data\") }')" >> $GITHUB_ENV
+
+      - name: Cache rosettasciio data
+        if: ${{ env.REPOSITORY_NAME != 'rosettasciio' }} # only for repositories that are not rosettasciio
+        uses: actions/cache@v4
+        env:
+          # Increase this value to reset cache
+          CACHE_NUMBER: 0
+        with:
+          path: ${{ env.ROSETTASCIIO_TEST_DATA }}
+          key:
+            ${{ runner.os }}-rosettasciio-${{ env.CACHE_NUMBER }}
 
       - name: Run HyperSpy Test Suite
         if: ${{ always() }}
