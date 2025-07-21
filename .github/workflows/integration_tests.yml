@@ -27,6 +27,10 @@ on:
         description: 'Whether to use conda to install the packages. Set to "false" to use pip.'
         default: false
         type: boolean
+      ADDITIONAL_PACKAGES:
+        description: 'List of additional packages to install.'
+        default: ''
+        type: string
       NUMBA_DEV:
         description: 'Whether to install the numba development version.'
         default: false
@@ -124,6 +128,15 @@ jobs:
         run: |
           conda info
           conda list
+
+      - name: Install additional packages
+        if: ${{ inputs.ADDITIONAL_PACKAGES != '' }}
+        run: |
+          if [[ "${{ inputs.USE_CONDA }}" == "true" ]]; then
+            conda install ${{ inputs.ADDITIONAL_PACKAGES }}
+          else
+            pip install ${{ inputs.ADDITIONAL_PACKAGES }}
+          fi
 
       - name: Install numba development version
         if: ${{ inputs.NUMBA_DEV }}
