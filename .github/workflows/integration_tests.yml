@@ -48,6 +48,11 @@ on:
         description: 'The platform to run the tests on.'
         default: 'ubuntu-latest'
         type: string
+      PIP_EXTRAS:
+        description: 'Optional “variants” (also called extra) to be installed for the source of the current repository'
+        # if empty string, no argument is passed
+        default: ''
+        type: string
 
 jobs:
   integration_test:
@@ -244,7 +249,7 @@ jobs:
       - name: Install ${{ env.REPOSITORY_NAME }} (local)
         if: ${{ inputs.INSTALL_SOURCE_FROM_REPOSITORY }}
         run: |
-          pip install -e .
+          pip install -e .${{ inputs.PIP_EXTRAS }}
 
       - name: Conda list
         run: |
