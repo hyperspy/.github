@@ -234,7 +234,9 @@ jobs:
             elif [[ "$ext" == "kikuchipy" && "${{ env.REPOSITORY_NAME }}" != "kikuchipy" ]]; then
               pip install "kikuchipy @ git+https://github.com/pyxem/kikuchipy.git"
             elif [[ "$ext" == "atomap" && "${{ env.REPOSITORY_NAME }}" != "atomap" ]]; then
-              pip install "atomap @ git+https://github.com/atomap-dev/atomap.git"
+              # pip install "atomap @ git+https://github.com/atomap-dev/atomap.git"
+              # https://github.com/atomap-dev/atomap/pull/2
+              pip install "atomap @ git+https://github.com/ericpre/atomap.git@fix_packaging"
             elif [[ "$ext" == "etspy" && "${{ env.REPOSITORY_NAME }}" != "etspy" ]]; then
               pip install "etspy @ git+https://github.com/usnistgov/etspy.git"
             else
