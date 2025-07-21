@@ -155,12 +155,8 @@ jobs:
           fi
 
       - name: Install distribution
-        env:
-          EXTRAS: ${{ inputs.EXTRAS }}
         run: |
-          # pint release version doesn't support numpy 2.0
-          pip install numpy
-          pip install --pre --find-links dist ${{ env.LIBRARY_NAME }}${{ env.EXTRAS }}
+          pip install --pre --find-links dist ${{ env.LIBRARY_NAME }}${{ inputs.EXTRAS }}
 
       - name: Install additional test dependencies
         if: ${{ inputs.ADDITIONAL_TEST_DEPENDENCIES != ''}}
@@ -175,15 +171,13 @@ jobs:
         if: ${{ inputs.use_xvfb != true }}
         env:
           POOCH_BASE_URL: ${{ inputs.POOCH_BASE_URL }}
-          PYTEST_ARGS: ${{ inputs.PYTEST_ARGS }}
         run: |
-          pytest --pyargs ${{ env.MODULE_NAME }} ${{ env.PYTEST_ARGS }}
+          pytest --pyargs ${{ env.MODULE_NAME }} ${{ inputs.PYTEST_ARGS }}
 
       - name: Test distribution (with xvfb)
         if: ${{ inputs.use_xvfb }}
         env:
           POOCH_BASE_URL: ${{ inputs.POOCH_BASE_URL }}
-          PYTEST_ARGS: ${{ inputs.PYTEST_ARGS }}
         run: |
           sudo apt-get install xvfb
-          xvfb-run pytest --pyargs ${{ env.MODULE_NAME }} ${{ env.PYTEST_ARGS }}
+          xvfb-run pytest --pyargs ${{ env.MODULE_NAME }} ${{ inputs.PYTEST_ARGS }}
