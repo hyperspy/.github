@@ -81,6 +81,14 @@ jobs:
           activate-environment: "test"
           conda-remove-defaults: "true"
 
+      - name: Install pip and test dependencies
+        run: |
+          conda install pip pooch ${{ env.TEST_DEPS }} 
+
+      - name: Get pooch cache location
+        run: |
+          python -c "import pooch; print(f'POOCH_CACHE={pooch.os_cache()}', end='')" >> $GITHUB_ENV
+
       - name: Cache pip
         uses: actions/cache@v4
         env:
@@ -102,14 +110,20 @@ jobs:
           key:
             ${{ runner.os }}-conda-${{ env.CACHE_NUMBER }}
 
+      - name: Cache pooch
+        uses: actions/cache@v4
+        env:
+          # Increase this value to reset cache
+          CACHE_NUMBER: 0
+        with:
+          path: ${{ env.POOCH_CACHE }}
+          key:
+            ${{ runner.os }}-pooch-${{ env.CACHE_NUMBER }}
+
       - name: Conda info
         run: |
           conda info
           conda list
-
-      - name: Install pip and test dependencies
-        run: |
-          conda install pip ${{ env.TEST_DEPS }} 
 
       - name: Install numba development version
         if: ${{ inputs.NUMBA_DEV }}
