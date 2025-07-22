@@ -64,7 +64,6 @@ jobs:
       MPLBACKEND: agg
       TEST_DEPS: pytest pytest-xdist pytest-rerunfailures pytest-instafail pytest-mpl filelock
       PYTHON_VERSION: '3.12'
-
     steps:
       - uses: actions/checkout@v4
         with: 
@@ -77,8 +76,6 @@ jobs:
 
       - name: Fetch tags upstream
         if: ${{ github.repository_owner != 'hyperspy' }}
-        # Needs to fetch the tags from upstream to get the
-        # correct version with setuptools_scm
         run: |
           git remote add upstream https://github.com/hyperspy/${{ env.REPOSITORY_NAME }}.git
           git fetch upstream --tags
@@ -235,9 +232,7 @@ jobs:
             elif [[ "$ext" == "pyxem" && "${{ env.REPOSITORY_NAME }}" != "pyxem" ]]; then
               pip install "pyxem @ git+https://github.com/pyxem/pyxem.git"
             elif [[ "$ext" == "kikuchipy" && "${{ env.REPOSITORY_NAME }}" != "kikuchipy" ]]; then
-              # pip install "kikuchipy @ git+https://github.com/pyxem/kikuchipy.git"
-              # https://github.com/pyxem/kikuchipy/pull/741
-              pip install "kikuchipy @ git+https://github.com/ericpre/kikuchipy.git@fix_allow_download_test_suite"
+              pip install "kikuchipy @ git+https://github.com/pyxem/kikuchipy.git"
             elif [[ "$ext" == "atomap" && "${{ env.REPOSITORY_NAME }}" != "atomap" ]]; then
               # pip install "atomap @ git+https://github.com/atomap-dev/atomap.git"
               # https://github.com/atomap-dev/atomap/pull/2
@@ -256,6 +251,7 @@ jobs:
 
       - name: Install ${{ env.REPOSITORY_NAME }} (local)
         if: ${{ inputs.INSTALL_SOURCE_FROM_REPOSITORY }}
+        working-directory: ${{ github.workspace }}
         run: |
           pip install -e .${{ inputs.PIP_EXTRAS }}
 
@@ -281,58 +277,68 @@ jobs:
 
       - name: Run HyperSpy Test Suite
         if: ${{ always() }}
+        working-directory: ${{ runner.temp }}
         run: |
           python -m pytest --pyargs hyperspy ${{ env.PYTEST_ARGS }}
 
       - name: Run RosettaSciIO Test Suite
         if: ${{ always() }}
+        working-directory: ${{ runner.temp }}
         run: |
           # mrcz and pyusid doesn't support numpy 2
           python -m pytest --pyargs rsciio ${{ env.PYTEST_ARGS }} -k "not test_mrcz.py and not test_usid.py"
 
       - name: Run LumiSpy Test Suite
         if: ${{ always() && contains(inputs.EXTENSIONS, 'lumispy')}}
+        working-directory: ${{ runner.temp }}
         run: |
           python -m pytest --pyargs lumispy
 
       - name: Run hyperspy_gui_ipywidgets Test Suite
         if: ${{ always() && contains(inputs.EXTENSIONS, 'hyperspy-gui-ipywidgets') }}
+        working-directory: ${{ runner.temp }}
         run: |
           python -m pytest --pyargs hyperspy_gui_ipywidgets
 
       - name: Run hyperspy_gui_traitsui Test Suite
         if: ${{ always() && contains(inputs.EXTENSIONS, 'hyperspy-gui-traitsui') }}
+        working-directory: ${{ runner.temp }}
         run: |
           python -m pytest --pyargs hyperspy_gui_traitsui
 
       - name: Run Pyxem Test Suite
         if: ${{ always() && contains(inputs.EXTENSIONS, 'pyxem') }}
+        working-directory: ${{ runner.temp }}
         run: |
           python -m pytest --pyargs pyxem
 
       - name: Run holospy Test Suite
         if: ${{ always() && contains(inputs.EXTENSIONS, 'holospy') }}
+        working-directory: ${{ runner.temp }}
         run: |
           python -m pytest --pyargs holospy
 
       - name: Run exSpy Test Suite
         if: ${{ always() && contains(inputs.EXTENSIONS, 'exspy') }}
+        working-directory: ${{ runner.temp }}
         run: |
           python -m pytest --pyargs exspy
 
       - name: Run kikuchipy Test Suite
         if: ${{ always() && contains(inputs.EXTENSIONS, 'kikuchipy') }}
+        working-directory: ${{ runner.temp }}
         run: |
           # https://github.com/pyxem/kikuchipy/issues/707
-          # https://github.com/pyxem/kikuchipy/pull/741
-          python -m pytest --pyargs kikuchipy -k "not test_not_allow_download_raises and not test_ebsd"
+          python -m pytest --pyargs kikuchipy -k "not test_not_allow_download_raises"
 
       - name: Run etspy Test Suite
         if: ${{ always() && contains(inputs.EXTENSIONS, 'etspy') }}
+        working-directory: ${{ runner.temp }}
         run: |
           python -m pytest --pyargs etspy
 
       - name: Run atomap Test Suite
         if: ${{ always() && contains(inputs.EXTENSIONS, 'atomap') }}
+        working-directory: ${{ runner.temp }}
         run: |
           python -m pytest --pyargs atomap -k "not test_gui_function_qt"
