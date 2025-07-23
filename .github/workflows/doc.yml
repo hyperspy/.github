@@ -80,6 +80,12 @@ jobs:
           git remote add upstream https://github.com/${{ inputs.ORGANISATION }}/${{ env.REPOSITORY_NAME }}.git
           git fetch upstream --tags
 
+      - name: Install package in Ubuntu
+        if: ${{ inputs.CACHE_DOC_BUILD }}
+        run : |
+          sudo apt-get update
+          sudo apt-get install git-restore-mtime
+
       - name: Cache pip
         uses: actions/cache@v4
         env:
@@ -102,6 +108,29 @@ jobs:
           key: ${{ runner.os }}-doc-${{ env.CACHE_NUMBER }}
           restore-keys: |
             ${{ runner.os }}-doc-${{ env.CACHE_NUMBER }}
+
+      - name: Fix doc cache timestamp
+        if: ${{ inputs.CACHE_DOC_BUILD }}
+        run: |
+            # Sphinx HTML builder will rebuild the whole project when modification time
+            # (mtime) of templates of theme newer than built result. [1]
+            #
+            # These theme templates vendored in pip packages are newly installed,
+            # so their mtime always newr than the built result.
+            # Set mtime to 1990 to make sure the project won't rebuilt.
+            #
+            # .. [1] https://github.com/sphinx-doc/sphinx/blob/5.x/sphinx/builders/html/__init__.py#L417
+            echo Fixing timestamp of HTML theme
+            site_packages_dir=$(python -c 'import site; print(site.getsitepackages()[0])')
+            echo Python site-packages directory: $site_packages_dir
+            for i in $(find $site_packages_dir -name '*.html'); do
+                echo File: $i
+                touch -m -t 190001010000 $i
+                echo Fixing timestamp of $i
+            done
+
+            echo restore timestamp of git repository
+            git restore-mtime
 
       - name: Display content of the cached doc build folder
         if: ${{ inputs.CACHE_DOC_BUILD }}
