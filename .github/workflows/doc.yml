@@ -44,10 +44,10 @@ on:
         description: 'The organisation hosting the upstream code'
         default: 'hyperspy'
         type: string  
-      CACHE_GALLERY_EXAMPLES:
-        description: 'The path to cache for the gallery of examples'
-        default: ''
-        type: string  
+      CACHE_DOC_BUILD:
+        description: 'The path to cache for the documentation build. Useful to speed up documentation build.'
+        default: true
+        type: boolean  
       CACHE_POOCH:
         description: 'The name of the library to cache the pooch data'
         default: ''
@@ -91,26 +91,26 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-pip-${{ env.CACHE_NUMBER }}
 
-      - name: Cache gallery of examples
-        if: ${{ inputs.CACHE_GALLERY_EXAMPLES != '' }}
+      - name: Cache doc build
+        if: ${{ inputs.CACHE_DOC_BUILD }}
         uses: actions/cache@v4
         env:
           # Increase this value to reset cache
           CACHE_NUMBER: 0
         with:
-          path: ${{ inputs.CACHE_GALLERY_EXAMPLES }}
-          key: ${{ runner.os }}-gallery-${{ env.CACHE_NUMBER }}
+          path: ${{ inputs.doc_build_path }}
+          key: ${{ runner.os }}-doc-${{ env.CACHE_NUMBER }}
           restore-keys: |
-            ${{ runner.os }}-gallery-${{ env.CACHE_NUMBER }}
+            ${{ runner.os }}-doc-${{ env.CACHE_NUMBER }}
 
-      - name: Display content of the cached gallery folder
-        if: ${{ inputs.CACHE_GALLERY_EXAMPLES != '' }}
+      - name: Display content of the cached doc build folder
+        if: ${{ inputs.CACHE_DOC_BUILD }}
         run: |
-            if [ -d "${{ inputs.CACHE_GALLERY_EXAMPLES }}" ]; then
-              echo "Content of the cached gallery folder:"
-              ls -l ${{ inputs.CACHE_GALLERY_EXAMPLES }}
+            if [ -d "${{ inputs.doc_build_path }}" ]; then
+              echo "Content of the cached doc build folder:"
+              ls -l ${{ inputs.doc_build_path }}
             else
-              echo "Gallery folder does not exist: ${{ inputs.CACHE_GALLERY_EXAMPLES }}"
+              echo "Doc build folder does not exist (yet?): ${{ inputs.doc_build_path }}"
             fi
 
       - name: Install package in Ubuntu
