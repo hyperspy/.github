@@ -80,12 +80,6 @@ jobs:
           git remote add upstream https://github.com/${{ inputs.ORGANISATION }}/${{ env.REPOSITORY_NAME }}.git
           git fetch upstream --tags
 
-      - name: Install package in Ubuntu
-        if: ${{ inputs.CACHE_DOC_BUILD }}
-        run : |
-          sudo apt-get update
-          sudo apt-get install git-restore-mtime
-
       - name: Cache pip
         uses: actions/cache@v4
         env:
@@ -93,9 +87,9 @@ jobs:
           CACHE_NUMBER: 0
         with:
           path: ~/.cache/pip
-          key: ${{ runner.os }}-pip-${{ env.CACHE_NUMBER }}
+          key: ${{ runner.os }}-doc_build-pip-${{ env.CACHE_NUMBER }}
           restore-keys: |
-            ${{ runner.os }}-pip-${{ env.CACHE_NUMBER }}
+            ${{ runner.os }}-doc_build-pip-${{ env.CACHE_NUMBER }}
 
 
       - name: Install package in Ubuntu
@@ -121,7 +115,7 @@ jobs:
       - uses: actions/setup-python@v5
         name: Install Python
         with:
-          python-version: '3.11'
+          python-version: '3.12'
 
       - name: Install library
         if: ${{ inputs.install_dependencies_only != true }}
@@ -133,6 +127,14 @@ jobs:
         run: |
           pip install -r requirements.txt
 
+      - name: Install dependencies for doc build caching
+        if: ${{ inputs.CACHE_DOC_BUILD }}
+        run : |
+          sudo apt-get update
+          sudo apt-get install git-restore-mtime
+          # https://github.com/sphinx-notes/incrbuild/blob/master/docs/index.rst
+          pip install sphinxnotes-incrbuild
+
       - name: Cache doc build
         if: ${{ inputs.CACHE_DOC_BUILD }}
         uses: actions/cache@v4
@@ -140,43 +142,18 @@ jobs:
           # Increase this value to reset cache
           CACHE_NUMBER: 0
         with:
-          path: ${{ inputs.doc_build_path }}
-          key: ${{ runner.os }}-doc-${{ env.CACHE_NUMBER }}
+          # https://github.com/sphinx-notes/incrbuild/blob/master/docs/index.rst
+          path: /tmp/sphinxnotes-incrbuild
+          key: ${{ runner.os }}-doc_build-doc-${{ env.CACHE_NUMBER }}
           restore-keys: |
-            ${{ runner.os }}-doc-${{ env.CACHE_NUMBER }}
+            ${{ runner.os }}-doc_build-doc-${{ env.CACHE_NUMBER }}
 
-      - name: Fix doc cache timestamp
-        if: ${{ inputs.CACHE_DOC_BUILD }}
+      - name: Set POOCH_CACHE_PATH
+        if: ${{ inputs.CACHE_DOC_BUILD}}
         run: |
-            # Sphinx HTML builder will rebuild the whole project when modification time
-            # (mtime) of templates of theme newer than built result. [1]
-            #
-            # These theme templates vendored in pip packages are newly installed,
-            # so their mtime always newr than the built result.
-            # Set mtime to 1990 to make sure the project won't rebuilt.
-            #
-            # .. [1] https://github.com/sphinx-doc/sphinx/blob/5.x/sphinx/builders/html/__init__.py#L417
-            echo Fixing timestamp of HTML theme
-            site_packages_dir=$(python -c 'import site; print(site.getsitepackages()[0])')
-            echo Python site-packages directory: $site_packages_dir
-            for i in $(find $site_packages_dir -name '*.html'); do
-                echo File: $i
-                touch -m -t 190001010000 $i
-                echo Fixing timestamp of $i
-            done
-
-            echo restore timestamp of git repository
-            git restore-mtime
-
-      - name: Display content of the cached doc build folder
-        if: ${{ inputs.CACHE_DOC_BUILD }}
-        run: |
-            if [ -d "${{ inputs.doc_build_path }}" ]; then
-              echo "Content of the cached doc build folder:"
-              ls -l ${{ inputs.doc_build_path }}
-            else
-              echo "Doc build folder does not exist (yet?): ${{ inputs.doc_build_path }}"
-            fi
+          # https://github.com/sphinx-notes/incrbuild/blob/master/docs/index.rst
+          SPHINXBUILD="python -msphinxnotes.incrbuild"
+          echo "SPHINXBUILD=${SPHINXBUILD}" >> $GITHUB_ENV
 
       - name: Get pooch cache path
         if: ${{ inputs.CACHE_POOCH != '' && always()}}
@@ -192,9 +169,9 @@ jobs:
           CACHE_NUMBER: 0
         with:
           path: ${{ env.POOCH_CACHE_PATH }}
-          key: ${{ runner.os }}-pooch-${{ env.CACHE_NUMBER }}
+          key: ${{ runner.os }}-doc_build-pooch-${{ env.CACHE_NUMBER }}
           restore-keys: |
-            ${{ runner.os }}-pooch-${{ env.CACHE_NUMBER }}
+            ${{ runner.os }}-doc_build-pooch-${{ env.CACHE_NUMBER }}
 
       - name: Run doctest
         if: ${{ inputs.doctest }}
@@ -211,7 +188,7 @@ jobs:
           FORCE_COLOR: 1
         run: |
           cd ${{ inputs.doc_path }}
-          make SPHINXOPTS="${{ inputs.SPHINXOPTS }}" html
+          make SPHINXOPTS="${{ inputs.SPHINXOPTS }}" SPHINXBUILD="${{ env.SPHINXBUILD }}" html
 
       - name: Build documentation (with xvfb)
         if: ${{ inputs.use_xvfb }}
@@ -219,7 +196,7 @@ jobs:
           FORCE_COLOR: 1
         run: |
           cd ${{ inputs.doc_path }}
-          xvfb-run make SPHINXOPTS="${{ inputs.SPHINXOPTS }}" html
+          xvfb-run make SPHINXOPTS="${{ inputs.SPHINXOPTS }}" SPHINXBUILD="${{ env.SPHINXBUILD }}" html
 
       - uses: actions/upload-artifact@v4
         with:
