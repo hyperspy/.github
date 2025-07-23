@@ -44,6 +44,15 @@ on:
         description: 'The organisation hosting the upstream code'
         default: 'hyperspy'
         type: string  
+      CACHE_GALLERY_EXAMPLES:
+        description: 'The path to cache for the gallery of examples'
+        default: ''
+        type: string  
+      CACHE_POOCH:
+        description: 'The name of the library to cache the pooch data'
+        default: ''
+        type: string  
+
 
 jobs:
   build:
@@ -70,6 +79,39 @@ jobs:
         run: |
           git remote add upstream https://github.com/${{ inputs.ORGANISATION }}/${{ env.REPOSITORY_NAME }}.git
           git fetch upstream --tags
+
+      - name: Cache pip
+        uses: actions/cache@v4
+        env:
+          # Increase this value to reset cache
+          CACHE_NUMBER: 0
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ env.CACHE_NUMBER }}
+          restore-keys: |
+            ${{ runner.os }}-pip-${{ env.CACHE_NUMBER }}
+
+      - name: Cache gallery of examples
+        if: ${{ inputs.CACHE_GALLERY_EXAMPLES != '' }}
+        uses: actions/cache@v4
+        env:
+          # Increase this value to reset cache
+          CACHE_NUMBER: 0
+        with:
+          path: ${{ inputs.CACHE_GALLERY_EXAMPLES }}
+          key: ${{ runner.os }}-gallery-${{ env.CACHE_NUMBER }}
+          restore-keys: |
+            ${{ runner.os }}-gallery-${{ env.CACHE_NUMBER }}
+
+      - name: Display content of the cached gallery folder
+        if: ${{ inputs.CACHE_GALLERY_EXAMPLES != '' }}
+        run: |
+            if [ -d "${{ inputs.CACHE_GALLERY_EXAMPLES }}" ]; then
+              echo "Content of the cached gallery folder:"
+              ls -l ${{ inputs.CACHE_GALLERY_EXAMPLES }}
+            else
+              echo "Gallery folder does not exist: ${{ inputs.CACHE_GALLERY_EXAMPLES }}"
+            fi
 
       - name: Install package in Ubuntu
         if: ${{ inputs.install_package_ubuntu }}
@@ -106,6 +148,24 @@ jobs:
         run: |
           pip install -r requirements.txt
 
+      - name: Get pooch cache path
+        if: ${{ inputs.CACHE_POOCH != '' && always()}}
+        run: |
+          python -c "import pooch; print(pooch.os_cache('${{ inputs.CACHE_POOCH }}'))" > pooch_cache_path.txt
+          echo "POOCH_CACHE_PATH=$(cat pooch_cache_path.txt)" >> $GITHUB_ENV
+
+      - name: Cache pooch
+        if: ${{ inputs.CACHE_POOCH != '' && always()}}
+        uses: actions/cache@v4
+        env:
+          # Increase this value to reset cache
+          CACHE_NUMBER: 0
+        with:
+          path: ${{ env.POOCH_CACHE_PATH }}
+          key: ${{ runner.os }}-pooch-${{ env.CACHE_NUMBER }}
+          restore-keys: |
+            ${{ runner.os }}-pooch-${{ env.CACHE_NUMBER }}
+
       - name: Run doctest
         if: ${{ inputs.doctest }}
         run: |
@@ -121,7 +181,7 @@ jobs:
           FORCE_COLOR: 1
         run: |
           cd ${{ inputs.doc_path }}
-          make SPHINXOPTS=${{ inputs.SPHINXOPTS }} html
+          make SPHINXOPTS="${{ inputs.SPHINXOPTS }}" html
 
       - name: Build documentation (with xvfb)
         if: ${{ inputs.use_xvfb }}
@@ -129,7 +189,7 @@ jobs:
           FORCE_COLOR: 1
         run: |
           cd ${{ inputs.doc_path }}
-          xvfb-run make SPHINXOPTS=${{ inputs.SPHINXOPTS }} html
+          xvfb-run make SPHINXOPTS="${{ inputs.SPHINXOPTS }}" html
 
       - uses: actions/upload-artifact@v4
         with:
