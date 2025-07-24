@@ -133,7 +133,9 @@ jobs:
           sudo apt-get update
           sudo apt-get install git-restore-mtime
           # https://github.com/sphinx-notes/incrbuild/blob/master/docs/index.rst
-          pip install sphinxnotes-incrbuild
+          # pip install sphinxnotes-incrbuild
+          # fix non-existing parent directory
+          pip install "sphinxnotes-incrbuild @ git+https://github.com/ericpre/incrbuild.git"
 
       - name: Cache doc build
         if: ${{ inputs.CACHE_DOC_BUILD }}
