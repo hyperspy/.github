@@ -42,6 +42,10 @@ on:
         description: 'The organisation hosting the upstream code'
         default: 'hyperspy'
         type: string  
+      CACHE_POOCH:
+        description: 'The list of pooch cache to cache - see pooch.os_cache() for more information.'
+        default: ''
+        type: string
 
 env:
   PYTHON_VERSION: '3.11'
@@ -162,6 +166,56 @@ jobs:
         if: ${{ inputs.ADDITIONAL_TEST_DEPENDENCIES != ''}}
         run: |
           pip install ${{ inputs.ADDITIONAL_TEST_DEPENDENCIES }}
+
+      - name: Cache pip
+        uses: actions/cache@v4
+        env:
+          # Increase this value to reset cache
+          CACHE_NUMBER: 0
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-package&test-pip-${{ env.CACHE_NUMBER }}
+          restore-keys: |
+            ${{ runner.os }}-package&test-pip-${{ env.CACHE_NUMBER }}
+
+      - name: Get pooch cache paths
+        if: ${{ inputs.CACHE_POOCH != '' }}
+        run: |
+          # create list of pooch cache paths as a string (space separated)
+          python -c "import pooch; print(' '.join([str(pooch.os_cache(s)) for s in ${{ inputs.CACHE_POOCH }}.split(' ')])))" > pooch_cache_paths.txt
+          echo "POOCH_CACHE_PATHS=$(cat pooch_cache_paths.txt)" >> $GITHUB_ENV
+
+      - name: Cache pooch data
+        if: ${{ inputs.CACHE_POOCH != '' }}
+        uses: actions/cache@v4
+        env:
+          # Increase this value to reset cache
+          CACHE_NUMBER: 0
+        with:
+          path: ${{ env.POOCH_CACHE_PATHS }}
+          key: ${{ runner.os }}-package&test-pooch-${{ env.CACHE_NUMBER }}
+          restore-keys: |
+            ${{ runner.os }}-package&test-pooch-${{ env.CACHE_NUMBER }}
+
+      - name: Get rosettasciio tests data location
+        # special case rosettasciio to cache the test data
+        if: ${{ inputs.module_name == 'rsciio' }}
+        run: |
+          python -c "from rsciio.tests import registry; print(f'ROSETTASCIIO_TEST_DATA={str(registry.TESTS_PATH / \"data\") }')" >> $GITHUB_ENV
+
+      - name: Cache rosettasciio data
+        # special case rosettasciio to cache the test data
+        if: ${{ inputs.module_name == 'rsciio' }}
+        uses: actions/cache@v4
+        env:
+          # Increase this value to reset cache
+          CACHE_NUMBER: 0
+        with:
+          path: ${{ env.ROSETTASCIIO_TEST_DATA }}
+          key:
+            ${{ runner.os }}-package&test-test_data-${{ env.CACHE_NUMBER }}
+          restore-keys: |
+            ${{ runner.os }}-package&test-test_data-${{ env.CACHE_NUMBER }}
 
       - name: Pip list
         run: |
