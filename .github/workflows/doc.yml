@@ -44,6 +44,17 @@ on:
         description: 'The organisation hosting the upstream code'
         default: 'hyperspy'
         type: string  
+      CACHE_GALLERY_EXAMPLES:
+        description: 'The path to cache for the documentation build. Useful to speed up documentation build.'
+        default: ''  # './doc/auto_examples'
+        type: string  
+      CACHE_POOCH:
+        description: 'The name of the library to cache the pooch data, see pooch.os_cache() for more details. 
+                      The default pooch cache (pooch.os_cache("pooch")) will also be cached.
+                      If empty (default), no caching is performed.'
+        default: ''
+        type: string  
+
 
 jobs:
   build:
@@ -71,6 +82,18 @@ jobs:
           git remote add upstream https://github.com/${{ inputs.ORGANISATION }}/${{ env.REPOSITORY_NAME }}.git
           git fetch upstream --tags
 
+      - name: Cache pip
+        uses: actions/cache@v4
+        env:
+          # Increase this value to reset cache
+          CACHE_NUMBER: 0
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-doc_build-pip-${{ env.CACHE_NUMBER }}
+          restore-keys: |
+            ${{ runner.os }}-doc_build-pip-${{ env.CACHE_NUMBER }}
+
+
       - name: Install package in Ubuntu
         if: ${{ inputs.install_package_ubuntu }}
         run : |
@@ -94,7 +117,7 @@ jobs:
       - uses: actions/setup-python@v5
         name: Install Python
         with:
-          python-version: '3.11'
+          python-version: '3.12'
 
       - name: Install library
         if: ${{ inputs.install_dependencies_only != true }}
@@ -105,6 +128,47 @@ jobs:
         if: ${{ inputs.install_dependencies_only }}
         run: |
           pip install -r requirements.txt
+
+      - name: Cache doc build
+        if: ${{ inputs.CACHE_GALLERY_EXAMPLES }}
+        uses: actions/cache@v4
+        env:
+          # Increase this value to reset cache
+          CACHE_NUMBER: 0
+        with:
+          path: ${{ inputs.CACHE_GALLERY_EXAMPLES }}
+          key: ${{ runner.os }}-doc_build-gallery-${{ env.CACHE_NUMBER }}
+          restore-keys: |
+            ${{ inputs.CACHE_GALLERY_EXAMPLES }}
+
+      - name: Display content of the cached doc build folder
+        if: ${{ inputs.CACHE_GALLERY_EXAMPLES }}
+        run: |
+            if [ -d "${{ inputs.CACHE_GALLERY_EXAMPLES }}" ]; then
+              echo "Content of the cached doc build folder:"
+              ls -l ${{ inputs.CACHE_GALLERY_EXAMPLES }}
+            else
+              echo "Doc build folder does not exist (yet?): ${{ inputs.CACHE_GALLERY_EXAMPLES }}"
+            fi
+
+      - name: Get pooch cache paths
+        if: ${{ inputs.CACHE_POOCH != '' }}
+        run: |
+          # create list of pooch cache paths as a string (space separated)
+          python -c "import pooch; print(' '.join([str(pooch.os_cache('${{ inputs.CACHE_POOCH }}')), str(pooch.os_cache('pooch'))]))" > pooch_cache_paths.txt
+          echo "POOCH_CACHE_PATHS=$(cat pooch_cache_paths.txt)" >> $GITHUB_ENV
+
+      - name: Cache pooch
+        if: ${{ inputs.CACHE_POOCH != ''}}
+        uses: actions/cache@v4
+        env:
+          # Increase this value to reset cache
+          CACHE_NUMBER: 0
+        with:
+          path: ${{ env.POOCH_CACHE_PATHS }}
+          key: ${{ runner.os }}-doc_build-pooch-${{ env.CACHE_NUMBER }}
+          restore-keys: |
+            ${{ runner.os }}-doc_build-pooch-${{ env.CACHE_NUMBER }}
 
       - name: Run doctest
         if: ${{ inputs.doctest }}
@@ -121,7 +185,7 @@ jobs:
           FORCE_COLOR: 1
         run: |
           cd ${{ inputs.doc_path }}
-          make SPHINXOPTS=${{ inputs.SPHINXOPTS }} html
+          make SPHINXOPTS="${{ inputs.SPHINXOPTS }}" html
 
       - name: Build documentation (with xvfb)
         if: ${{ inputs.use_xvfb }}
@@ -129,7 +193,7 @@ jobs:
           FORCE_COLOR: 1
         run: |
           cd ${{ inputs.doc_path }}
-          xvfb-run make SPHINXOPTS=${{ inputs.SPHINXOPTS }} html
+          xvfb-run make SPHINXOPTS="${{ inputs.SPHINXOPTS }}" html
 
       - uses: actions/upload-artifact@v4
         with:
