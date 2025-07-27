@@ -53,7 +53,13 @@ on:
                       The default pooch cache (pooch.os_cache("pooch")) will also be cached.
                       If empty (default), no caching is performed.'
         default: ''
-        type: string  
+        type: string
+      READTHEDOCS_TOKEN:
+        description: 'NOT TESTED. User token used to trigger the ReadTheDocs build. 
+                      If empty (default), no ReadTheDocs build is triggered.
+                      The token can be created in the ReadTheDocs user settings.'
+        default: ''
+        type: string
 
 
 jobs:
@@ -207,3 +213,14 @@ jobs:
         run: |
           cd ${{ inputs.doc_path }}
           make linkcheck
+
+      - name: Trigger ReadTheDocs build
+        # NOT TESTED
+        if: ${{ inputs.READTHEDOCS_TOKEN }}
+        env:
+          RTD_PROJECT: ${{ env.REPOSITORY_NAME }}
+          RTD_TOKEN: ${{ inputs.READTHEDOCS_TOKEN }}
+          RTD_VERSION: ${{ github.event_name == 'push' && 'latest' || (github.event_name == 'pull_request' && format('pull/{0}', github.event.pull_request.number)) || (startsWith(github.ref, 'refs/tags/') && format('v{0}', github.ref_name)) }}
+        run: |
+          curl -X POST "https://readthedocs.org/api/v3/projects/${RTD_PROJECT}/versions/${RTD_VERSION}/builds/" -H "Authorization: Token ${RTD_TOKEN}"
+
