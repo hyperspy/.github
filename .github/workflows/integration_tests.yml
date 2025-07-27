@@ -328,7 +328,9 @@ jobs:
         working-directory: ${{ runner.temp }}
         run: |
           # mrcz and pyusid doesn't support numpy 2
-          python -m pytest --pyargs rsciio ${{ env.PYTEST_ARGS }} -k "not test_mrcz.py and not test_usid.py"
+          # it shouldn't be necessary to set `--dist=loadfile` here, unclear why it fails otherwise in some workflows
+          # could it be fixed in the pytest configuration of rosettasciio?
+          python -m pytest --pyargs rsciio ${{ env.PYTEST_ARGS }} --dist=loadfile -k "not test_mrcz.py and not test_usid.py"
 
       - name: Run LumiSpy Test Suite
         if: ${{ always() && contains(inputs.EXTENSIONS, 'lumispy')}}
