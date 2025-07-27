@@ -57,6 +57,19 @@ on:
         description: 'The list of pooch cache to cache - see pooch.os_cache() for more information.'
         default: 'kikuchipy pyxem'
         type: string
+      PYTEST_ARGS:
+        description: 'Additional arguments to pass to pytest.
+                      If not provided, defaults to "--reruns 3 -n <number_of_cpus>".'
+        default: ''
+        type: string
+      PYTHON_VERSION:
+        description: 'The Python version to use for the tests.'
+        default: '3.12'
+        type: string
+      TEST_DEPS:
+        description: 'The test dependencies to install.'
+        default: 'pytest pytest-xdist pytest-rerunfailures pytest-instafail pytest-mpl filelock'
+        type: string
 
 jobs:
   integration_test:
@@ -66,8 +79,9 @@ jobs:
         shell: bash -el {0}
     env:
       MPLBACKEND: agg
-      TEST_DEPS: pytest pytest-xdist pytest-rerunfailures pytest-instafail pytest-mpl filelock
-      PYTHON_VERSION: '3.12'
+      TEST_DEPS: ${{ inputs.TEST_DEPS }}
+      PYTHON_VERSION: ${{ inputs.PYTHON_VERSION }}
+      PYTEST_ARGS: ${{ inputs.PYTEST_ARGS }}
     steps:
       - uses: actions/checkout@v4
         with: 
@@ -163,7 +177,7 @@ jobs:
         shell: python
 
       - name: Set pytest options
-        shell: bash
+        if: ${{ env.PYTEST_ARGS == '' }}
         run: |
           PYTEST_ARGS="--reruns 3 -n ${{ steps.cpus.outputs.count }}"
           echo "PYTEST_ARGS=${PYTEST_ARGS}" >> $GITHUB_ENV
