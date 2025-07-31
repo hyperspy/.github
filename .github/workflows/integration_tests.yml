@@ -70,9 +70,14 @@ on:
         description: 'The test dependencies to install.'
         default: 'pytest pytest-xdist pytest-rerunfailures pytest-instafail pytest-mpl filelock'
         type: string
+      LABEL:
+        description: 'A label to add to the job name.'
+        default: ''
+        type: string
 
 jobs:
   integration_test:
+    name: ${{ inputs.PLATFORM }} py${{ inputs.PYTHON_VERSION }} ${{ inputs.LABEL }}
     runs-on: ${{ inputs.PLATFORM }}
     defaults:
       run:
