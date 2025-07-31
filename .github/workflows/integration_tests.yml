@@ -369,7 +369,7 @@ jobs:
           python -m pytest --pyargs exspy
 
       - name: Run kikuchipy Test Suite
-        if: ${{ always() && contains(inputs.EXTENSIONS, 'kikuchipy') }}
+        if: ${{ always() && contains(inputs.EXTENSIONS, 'kikuchipy') && !inputs.USE_CONDA }}
         working-directory: ${{ runner.temp }}
         run: |
           # https://github.com/pyxem/kikuchipy/issues/707
