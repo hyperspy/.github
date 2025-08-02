@@ -184,7 +184,9 @@ jobs:
       - name: Set pytest options
         if: ${{ env.PYTEST_ARGS == '' }}
         run: |
-          PYTEST_ARGS="--reruns 3 -n ${{ steps.cpus.outputs.count }}"
+          # it shouldn't be necessary to set `--dist=loadfile` because it should already
+          # set as default in the pytest configuration, but it doesn't seem to work...
+          PYTEST_ARGS="--reruns 3 -n ${{ steps.cpus.outputs.count }} --dist=loadfile"
           echo "PYTEST_ARGS=${PYTEST_ARGS}" >> $GITHUB_ENV
 
       - name: Install astra-toolbox and test dependencies
@@ -371,7 +373,7 @@ jobs:
         if: ${{ always() && contains(inputs.EXTENSIONS, 'exspy') }}
         working-directory: ${{ runner.temp }}
         run: |
-          python -m pytest --pyargs exspy
+          python -m pytest --pyargs exspy ${{ env.PYTEST_ARGS }}
 
       - name: Run kikuchipy Test Suite
         if: ${{ always() && contains(inputs.EXTENSIONS, 'kikuchipy') && !inputs.USE_CONDA }}
