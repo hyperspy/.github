@@ -335,9 +335,7 @@ jobs:
         working-directory: ${{ runner.temp }}
         run: |
           # mrcz and pyusid doesn't support numpy 2
-          # it shouldn't be necessary to set `--dist=loadfile` here, unclear why it fails otherwise in some workflows
-          # could it be fixed in the pytest configuration of rosettasciio?
-          python -m pytest --pyargs rsciio ${{ env.PYTEST_ARGS }} --dist=loadfile -k "not test_mrcz.py and not test_usid.py"
+          python -m pytest --pyargs rsciio ${{ env.PYTEST_ARGS }} -k "not test_mrcz.py and not test_usid.py"
 
       - name: Run LumiSpy Test Suite
         if: ${{ always() && contains(inputs.EXTENSIONS, 'lumispy')}}
@@ -376,11 +374,12 @@ jobs:
           python -m pytest --pyargs exspy ${{ env.PYTEST_ARGS }}
 
       - name: Run kikuchipy Test Suite
-        if: ${{ always() && contains(inputs.EXTENSIONS, 'kikuchipy') && !inputs.USE_CONDA }}
+        if: ${{ always() && contains(inputs.EXTENSIONS, 'kikuchipy') }}
         working-directory: ${{ runner.temp }}
         run: |
           # https://github.com/pyxem/kikuchipy/issues/707
-          python -m pytest --pyargs kikuchipy -k "not test_not_allow_download_raises"
+          # https://github.com/pyxem/kikuchipy/pull/749
+          python -m pytest --pyargs kikuchipy -k "not test_not_allow_download_raises and not spherical"
 
       - name: Run etspy Test Suite
         if: ${{ always() && contains(inputs.EXTENSIONS, 'etspy') }}
