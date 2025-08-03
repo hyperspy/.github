@@ -365,7 +365,8 @@ jobs:
         if: ${{ always() && contains(inputs.EXTENSIONS, 'pyxem') }}
         working-directory: ${{ runner.temp }}
         run: |
-          pytest --pyargs pyxem
+          # https://github.com/pyxem/pyxem/issues/1153
+          pytest --pyargs pyxem -k "not TestAddEllipseArrayAsMarkers"
 
       - name: Run holospy Test Suite
         if: ${{ always() && contains(inputs.EXTENSIONS, 'holospy') }}
