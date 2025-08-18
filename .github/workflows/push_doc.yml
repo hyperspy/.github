@@ -39,7 +39,7 @@ jobs:
       # If provided use access_token otherwise fall back on the github token
       ACCESS_TOKEN: ${{ secrets.access_token || github.token }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         with:
           fetch-depth: 0
           repository: ${{ inputs.repository }}
