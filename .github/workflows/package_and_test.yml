@@ -137,6 +137,9 @@ jobs:
           pip install pyqt5 PyQtWebEngine
 
       - uses: actions/download-artifact@v5
+        with:
+          name: dist
+          path: dist
 
       - name: Display content working folder
         run: |
