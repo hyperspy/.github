@@ -433,7 +433,7 @@ jobs:
         working-directory: ${{ runner.temp }}
         run: |
           # https://github.com/pyxem/pyxem/issues/1153
-          pytest --pyargs pyxem ${{ env.PYTEST_ARGS_REPORT }} -k "not TestAddEllipseArrayAsMarkers"
+          pytest --pyargs pyxem ${{ env.PYTEST_ARGS_REPORT }}
 
       - name: Report failure (pyxem)
         if: ${{ always() && inputs.REPORT_FAILURE && steps.pyxem_test.outcome == 'failure' }}
