@@ -74,6 +74,11 @@ on:
         description: 'A label to add to the job name.'
         default: ''
         type: string
+      REPORT_FAILURE:
+        # using https://github.com/scientific-python/issue-from-pytest-log-action
+        description: 'Whether to report the failure to the issue tracker.'
+        default: false
+        type: boolean
 
 jobs:
   integration_test:
@@ -143,10 +148,16 @@ jobs:
 
       - name: Install test dependencies
         run: |
+          # Also install pytest-reportlog if REPORT_FAILURE is true
+          TEST_DEPS="${{ inputs.TEST_DEPS }}"
+          if [[ "${{ inputs.REPORT_FAILURE }}" == "true" ]]; then
+            TEST_DEPS="${TEST_DEPS} pytest-reportlog"
+          fi
+          
           if [[ "${{ inputs.USE_CONDA }}" == "true" ]]; then
-            conda install ${{ inputs.TEST_DEPS }}
+            conda install ${TEST_DEPS}
           else
-            pip install ${{ inputs.TEST_DEPS }}
+            pip install ${TEST_DEPS}
           fi
 
       - name: Install numba development version
@@ -181,10 +192,18 @@ jobs:
       - name: Set pytest options
         if: ${{ env.PYTEST_ARGS == '' }}
         run: |
-          # it shouldn't be necessary to set `--dist=loadfile` because it should already
-          # set as default in the pytest configuration, but it doesn't seem to work...
-          PYTEST_ARGS="--reruns 3 -n ${{ steps.cpus.outputs.count }} --dist=loadfile"
+          if [[ "${{ env.PYTEST_ARGS }}" == "" ]]; then
+            # it shouldn't be necessary to set `--dist=loadfile` because it should already
+            # set as default in the pytest configuration, but it doesn't seem to work...
+            PYTEST_ARGS="--reruns 3 -n ${{ steps.cpus.outputs.count }} --dist=loadfile"
+          fi
+
+          if [[ "${{ inputs.REPORT_FAILURE }}" == "true" ]]; then
+            PYTEST_ARGS_REPORT="--report-log pytest-log.jsonl"
+          fi
+          
           echo "PYTEST_ARGS=${PYTEST_ARGS}" >> $GITHUB_ENV
+          echo "PYTEST_ARGS_REPORT=${PYTEST_ARGS_REPORT}" >> $GITHUB_ENV
 
       - name: Install astra-toolbox and test dependencies
         if: ${{ contains(inputs.EXTENSIONS, 'etspy') }}
@@ -332,9 +351,17 @@ jobs:
 
       - name: Run HyperSpy Test Suite
         if: ${{ always() }}
-        working-directory: ${{ runner.temp }}
+        id: hyperspy_test
         run: |
-          pytest --pyargs hyperspy ${{ env.PYTEST_ARGS }}
+          pytest --pyargs hyperspy ${{ env.PYTEST_ARGS }} ${{ env.PYTEST_ARGS_REPORT }}
+
+      - name: Report failure (HyperSpy)
+        if: ${{ always() && inputs.REPORT_FAILURE && steps.hyperspy_test.outcome == 'failure' }}
+        uses: scientific-python/issue-from-pytest-log-action@f94477e45ef40e4403d7585ba639a9a3bcc53d43
+        with:
+          log-path: ${{ runner.temp }}/pytest-log.jsonl
+          issue-label: "HyperSpy integration test failure"
+          assignees: "ericpre"
 
       - name: Run RosettaSciIO Test Suite
         if: ${{ always() }}
@@ -385,11 +412,20 @@ jobs:
 
       - name: Run kikuchipy Test Suite
         if: ${{ always() && contains(inputs.EXTENSIONS, 'kikuchipy') }}
+        id: kikuchipy_test
         working-directory: ${{ runner.temp }}
         run: |
           # https://github.com/pyxem/kikuchipy/issues/707
           # https://github.com/pyxem/kikuchipy/pull/749
-          pytest --pyargs kikuchipy -k "not test_not_allow_download_raises and not spherical"
+          pytest --pyargs kikuchipy ${{ env.PYTEST_ARGS_REPORT }} -k "not test_not_allow_download_raises and not spherical"
+
+      - name: Report failure (Kikuchipy)
+        if: ${{ always() && inputs.REPORT_FAILURE && steps.kikuchipy_test.outcome == 'failure' }}
+        uses: scientific-python/issue-from-pytest-log-action@f94477e45ef40e4403d7585ba639a9a3bcc53d43
+        with:
+          log-path: ${{ runner.temp }}/pytest-log.jsonl
+          issue-label: "Kikuchipy integration test failure"
+          assignees: "ericpre"
 
       - name: Run etspy Test Suite
         if: ${{ always() && contains(inputs.EXTENSIONS, 'etspy') }}
