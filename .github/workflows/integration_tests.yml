@@ -341,7 +341,10 @@ jobs:
         if: ${{ always() }}
         working-directory: ${{ runner.temp }}
         run: |
-          # mrcz and pyusid doesn't support numpy 2
+          # mrcz doesn't support python 3.12 and above because of dependence on distutils
+          # https://github.com/em-MRCZ/python-mrcz/pull/16
+          # distutils is vendored in setuptools, which can be misleading 
+          # pyusid doesn't support numpy 2
           pytest --pyargs rsciio ${{ env.PYTEST_ARGS }} -k "not test_mrcz.py and not test_usid.py"
 
       - name: Run LumiSpy Test Suite
