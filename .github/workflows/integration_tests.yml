@@ -197,7 +197,11 @@ jobs:
         if: ${{ contains(inputs.EXTENSION_VERSION, 'release') }}
         run: |
           if [[ "${{ inputs.USE_CONDA }}" == "true" ]]; then
-            conda install ${{ inputs.EXTENSIONS }}
+            libraries="${{ inputs.EXTENSIONS }}"
+            # Replace kikuchipy with kikuchipy-base for conda installation
+            libraries=$(echo "$libraries" | sed 's/kikuchipy/kikuchipy-base/g')
+            echo $libraries
+            conda install $libraries
           else
             pip install ${{ inputs.EXTENSIONS }}
           fi
