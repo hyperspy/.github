@@ -62,6 +62,11 @@ jobs:
     # web links are not broken 
     name: Check links and make PR comments
     runs-on: ubuntu-latest
+    permissions:
+      # downgrade permission to prevent pwn requests in PR preview
+      # see https://docs.github.com/en/actions/reference/workflows-and-actions/reusing-workflow-configurations
+      # and https://securitylab.github.com/resources/github-actions-preventing-pwn-requests
+      contents: read
     defaults:
       run:
         shell: bash -el {0}

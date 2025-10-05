@@ -1,4 +1,14 @@
 name: Push Documentation
+# To prevent pwn PR requests (for example in PR preview, where documentation is pushed automatically)
+# the documentation have to be built in a workflow that doesn't have access to any secrets and
+# therefore the build and push workflow needs to be done separetely in two different workflows.
+# See https://securitylab.github.com/resources/github-actions-preventing-pwn-requests for more information.
+
+# The caller workflow needs to provide an access token with write access to the repository
+# for example:
+#   permissions:
+#     # needs write permission to push the docs
+#     contents: write
 
 on:
   workflow_call:
@@ -31,9 +41,6 @@ jobs:
     # This build is to push changes to a repository
     name: Push to ${{ inputs.repository }}/${{ inputs.branch }}
     runs-on: ubuntu-latest
-    permissions:
-      # needs write permission to push the docs
-      contents: write
     env:
       # token to be used for checkout and push:
       # If provided use access_token otherwise fall back on the github token
