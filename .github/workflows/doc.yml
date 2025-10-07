@@ -11,6 +11,10 @@ on:
         description: 'The path to the folder containing the build of the doc'
         default: './doc/_build/html/'
         type: string
+      artifact_name:
+        description: 'The name of the artifact to create'
+        default: 'doc_html'
+        type: string
       install_dependencies_only:
         description: 'Only install dependencies listed in `requirement.txt` using pip'
         default: false
@@ -203,7 +207,7 @@ jobs:
       - uses: actions/upload-artifact@v4
         with:
           path: ${{ inputs.doc_build_path }}
-          name: doc_html
+          name: ${{ inputs.artifact_name }} 
 
       - name: Check links
         if: ${{ inputs.check_links }}
