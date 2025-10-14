@@ -15,12 +15,12 @@ on:
     inputs:
       artifact_name:
         description: 'The name of the github artifact containing the doc'
-        # if empty string, the current repository name is used
         default: 'doc_html'
         type: string
-      repository:
-        description: 'The repository, for example "hyperspy/hyperspy"'
-        # if empty string, the current repository name is used
+      external_repository:
+        description: >
+          'The external repository, if not the current repository, for example "hyperspy/hyperspy".
+          If used, a personal token with access to the repository is required.'
         default: ''
         type: string
       branch:
@@ -31,62 +31,70 @@ on:
         description: 'The path where the doc will be written'
         default: '.'
         type: string
+      redirect_to_version:
+        description: 'Add a redirect index.html in the root folder pointing to the given version.'
+        default: ''
+        type: string
     secrets:
-      access_token:
-        description: 'The access token required to push a repository: "GITHUB_TOKEN" if same repository of personal access token for separate repository'
-        # See https://github.com/ad-m/github-push-action/tree/master?tab=readme-ov-file#inputs
+      personal_token:
+        description: 'The access token required to push an external repository'
 
 jobs:
   push_doc:
     # This build is to push changes to a repository
-    name: Push to ${{ inputs.repository }}/${{ inputs.branch }}
+    name: Push docs ${{ inputs.branch }}
     runs-on: ubuntu-latest
     env:
-      # token to be used for checkout and push:
-      # If provided use access_token otherwise fall back on the github token
-      ACCESS_TOKEN: ${{ secrets.access_token || github.token }}
+      html_folder: doc/_build/html
+      redirect_folder: redirect
     steps:
-      - uses: actions/checkout@v5
-        with:
-          fetch-depth: 0
-          repository: ${{ inputs.repository }}
-          ref: ${{ inputs.branch }} 
-          # Need to specify token here to enable pushing to other repository
-          token: ${{ env.ACCESS_TOKEN }}
-
       - uses: actions/download-artifact@v5
         with:
           name: ${{ inputs.artifact_name }}
-          path: ${{ inputs.output_path }}
+          path: ${{ env.html_folder }}
 
       - name: list files
         run: |
           ls
 
-      - name: Git status
-        run: |
-          git status
-          git status -s
-          if [[ $(git status -s) ]]; then
-            HAS_CHANGES='true'
-          else
-            HAS_CHANGES='false'
-          fi
-          echo "HAS_CHANGES=${HAS_CHANGES}" >> $GITHUB_ENV
-
-      - name: Commit files
-        # Skip when there is nothing to commit
-        if: ${{ env.HAS_CHANGES == 'true' }}
-        run: |
-          git config --local user.email "github-actions[bot]@users.noreply.github.com"
-          git config --local user.name "github-actions[bot]"
-          git add -A
-          git commit -m "Update docs build" -a
-
-      - name: Push changes
-        if: ${{ env.HAS_CHANGES == 'true' }}
-        uses: ad-m/github-push-action@77c5b412c50b723d2a4fbc6d71fb5723bcd439aa
+      - name: Deploy docs
+        uses: peaceiris/actions-gh-pages@4f9cc6602d3f66b9c108549d475ec49e8ef4d45e
         with:
-          github_token: ${{ env.ACCESS_TOKEN }}
-          repository: ${{ inputs.repository }}
-          branch: ${{ inputs.branch }}
+          github_token: ${{ github.token }}
+          personal_token: ${{ secrets.personal_token }}
+          publish_dir: ${{ env.html_folder }}
+          destination_dir: ${{ inputs.output_path }}
+          external_repository: ${{ inputs.external_repository }}
+          publish_branch: ${{ inputs.branch }}
+
+      - name: Build index redirect
+        if: ${{ inputs.redirect_to_version != '' }}
+        env:
+          VERSION: ${{ inputs.redirect_to_version }}
+          FOLDER: ${{ env.redirect_folder }}
+        run: |
+          mkdir -p ${FOLDER}
+          cat <<EOF > ${FOLDER}/index.html
+          <!DOCTYPE html>
+          <html>
+            <head>
+              <meta http-equiv="refresh" content="0; url=${VERSION}/">
+              <script>window.location.href='${VERSION}/';</script>
+            </head>
+            <body>
+              <p>Redirecting to the <a href="${VERSION}/">documentation (stable)</a>...</p>
+            </body>
+          </html>
+          EOF
+
+      - name: Deploy redirect to versioned docs
+        if: ${{ inputs.redirect_to_version != '' }}
+        uses: peaceiris/actions-gh-pages@4f9cc6602d3f66b9c108549d475ec49e8ef4d45e
+        with:
+          github_token: ${{ github.token }}
+          personal_token: ${{ secrets.personal_token }}
+          publish_dir: ${{ env.redirect_folder }}
+          destination_dir: . # deploy the redirect to the root folder
+          external_repository: ${{ inputs.external_repository }}
+          publish_branch: ${{ inputs.branch }}
+          keep_files: true
