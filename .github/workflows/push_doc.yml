@@ -58,13 +58,22 @@ jobs:
           ls
 
       - name: Deploy docs
+        if: ${{ inputs.external_repository != '' }}
         uses: peaceiris/actions-gh-pages@4f9cc6602d3f66b9c108549d475ec49e8ef4d45e
         with:
-          github_token: ${{ github.token }}
           personal_token: ${{ secrets.personal_token }}
           publish_dir: ${{ env.html_folder }}
           destination_dir: ${{ inputs.output_path }}
           external_repository: ${{ inputs.external_repository }}
+          publish_branch: ${{ inputs.branch }}
+
+      - name: Deploy docs
+        if: ${{ inputs.external_repository == '' }}
+        uses: peaceiris/actions-gh-pages@4f9cc6602d3f66b9c108549d475ec49e8ef4d45e
+        with:
+          github_token: ${{ github.token }}
+          publish_dir: ${{ env.html_folder }}
+          destination_dir: ${{ inputs.output_path }}
           publish_branch: ${{ inputs.branch }}
 
       - name: Build index redirect
@@ -88,13 +97,22 @@ jobs:
           EOF
 
       - name: Deploy redirect to versioned docs
-        if: ${{ inputs.redirect_to_version != '' }}
+        if: ${{ inputs.redirect_to_version != '' && inputs.external_repository != ''}}
         uses: peaceiris/actions-gh-pages@4f9cc6602d3f66b9c108549d475ec49e8ef4d45e
         with:
-          github_token: ${{ github.token }}
           personal_token: ${{ secrets.personal_token }}
           publish_dir: ${{ env.redirect_folder }}
           destination_dir: . # deploy the redirect to the root folder
           external_repository: ${{ inputs.external_repository }}
+          publish_branch: ${{ inputs.branch }}
+          keep_files: true
+
+      - name: Deploy redirect to versioned docs
+        if: ${{ inputs.redirect_to_version != '' && inputs.external_repository == ''}}
+        uses: peaceiris/actions-gh-pages@4f9cc6602d3f66b9c108549d475ec49e8ef4d45e
+        with:
+          github_token: ${{ github.token }}
+          publish_dir: ${{ env.redirect_folder }}
+          destination_dir: . # deploy the redirect to the root folder
           publish_branch: ${{ inputs.branch }}
           keep_files: true
