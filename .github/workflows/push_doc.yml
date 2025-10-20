@@ -31,9 +31,17 @@ on:
         description: 'The path where the doc will be written'
         default: '.'
         type: string
-      redirect_to_version:
-        description: 'Add a redirect index.html in the root folder pointing to the given version.'
-        default: ''
+      create_redirect:
+        description: 'Add a redirect index.html in the root folder pointing to the output path.'
+        default: false
+        type: boolean
+      create_stable_copy:
+        description: 'Add a copy of the versioned docs with a persistent name.'
+        default: false
+        type: boolean
+      persistent_name:
+        description: 'The persistent name of the folder in the root folder that is a copy of versioned name.'
+        default: stable
         type: string
     secrets:
       personal_token:
@@ -44,46 +52,18 @@ jobs:
     # This build is to push changes to a repository
     name: Push docs ${{ inputs.branch }}
     runs-on: ubuntu-latest
-    env:
-      html_folder: doc/_build/html
-      redirect_folder: redirect
     steps:
       - uses: actions/download-artifact@v5
         with:
           name: ${{ inputs.artifact_name }}
-          path: ${{ env.html_folder }}
+          path: ${{ inputs.output_path }}
 
-      - name: list files
-        run: |
-          ls
-
-      - name: Deploy docs
-        if: ${{ inputs.external_repository != '' }}
-        uses: peaceiris/actions-gh-pages@4f9cc6602d3f66b9c108549d475ec49e8ef4d45e
-        with:
-          personal_token: ${{ secrets.personal_token }}
-          publish_dir: ${{ env.html_folder }}
-          destination_dir: ${{ inputs.output_path }}
-          external_repository: ${{ inputs.external_repository }}
-          publish_branch: ${{ inputs.branch }}
-
-      - name: Deploy docs
-        if: ${{ inputs.external_repository == '' }}
-        uses: peaceiris/actions-gh-pages@4f9cc6602d3f66b9c108549d475ec49e8ef4d45e
-        with:
-          github_token: ${{ github.token }}
-          publish_dir: ${{ env.html_folder }}
-          destination_dir: ${{ inputs.output_path }}
-          publish_branch: ${{ inputs.branch }}
-
-      - name: Build index redirect
-        if: ${{ inputs.redirect_to_version != '' }}
+      - name: Create index redirect
+        if: ${{ inputs.create_redirect }}
         env:
-          VERSION: ${{ inputs.redirect_to_version }}
-          FOLDER: ${{ env.redirect_folder }}
+          VERSION: ${{ inputs.output_path }}
         run: |
-          mkdir -p ${FOLDER}
-          cat <<EOF > ${FOLDER}/index.html
+          cat <<EOF > ./index.html
           <!DOCTYPE html>
           <html>
             <head>
@@ -96,23 +76,29 @@ jobs:
           </html>
           EOF
 
-      - name: Deploy redirect to versioned docs
-        if: ${{ inputs.redirect_to_version != '' && inputs.external_repository != ''}}
+      - name: Create ${{ inputs.persistent_name }} copy of the versioned docs
+        if: ${{ inputs.create_stable_copy }}
+        run: |
+          cp -r ${{ inputs.output_path }} ${{ inputs.persistent_name }}
+
+      - name: list files
+        run: |
+          ls
+
+      - name: Push docs
+        if: ${{ inputs.external_repository != '' }}
         uses: peaceiris/actions-gh-pages@4f9cc6602d3f66b9c108549d475ec49e8ef4d45e
         with:
           personal_token: ${{ secrets.personal_token }}
-          publish_dir: ${{ env.redirect_folder }}
-          destination_dir: . # deploy the redirect to the root folder
+          publish_dir: .
           external_repository: ${{ inputs.external_repository }}
           publish_branch: ${{ inputs.branch }}
           keep_files: true
 
-      - name: Deploy redirect to versioned docs
-        if: ${{ inputs.redirect_to_version != '' && inputs.external_repository == ''}}
+      - name: Push docs
+        if: ${{ inputs.external_repository == '' }}
         uses: peaceiris/actions-gh-pages@4f9cc6602d3f66b9c108549d475ec49e8ef4d45e
         with:
           github_token: ${{ github.token }}
-          publish_dir: ${{ env.redirect_folder }}
-          destination_dir: . # deploy the redirect to the root folder
-          publish_branch: ${{ inputs.branch }}
+          publish_dir: .
           keep_files: true
