@@ -293,6 +293,15 @@ jobs:
         run: |
           pip install -e .${{ inputs.PIP_EXTRAS }}
 
+      - name: Install pooch
+        if: ${{ inputs.CACHE_POOCH != '' }}
+        run: |
+          if [[ "${{ inputs.USE_CONDA }}" == "true" ]]; then
+            conda install pooch
+          else
+            pip install pooch
+          fi
+
       - name: Get pooch cache paths
         if: ${{ inputs.CACHE_POOCH != '' }}
         run: |
