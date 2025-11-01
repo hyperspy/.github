@@ -204,7 +204,7 @@ jobs:
           cd ${{ inputs.doc_path }}
           xvfb-run make SPHINXOPTS="${{ inputs.SPHINXOPTS }}" html
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v5
         with:
           path: ${{ inputs.doc_build_path }}
           name: ${{ inputs.artifact_name }} 
