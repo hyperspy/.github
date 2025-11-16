@@ -68,7 +68,7 @@ on:
         type: string
       TEST_DEPS:
         description: 'The test dependencies to install.'
-        default: 'pytest pytest-xdist pytest-rerunfailures pytest-instafail pytest-mpl filelock'
+        default: '"pytest<9" pytest-xdist pytest-rerunfailures pytest-instafail pytest-mpl filelock'
         type: string
       LABEL:
         description: 'A label to add to the job name.'
