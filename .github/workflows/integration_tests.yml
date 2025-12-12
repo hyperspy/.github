@@ -191,7 +191,9 @@ jobs:
         run: |
           # astra-toolbox is an etspy dependency
           # install ffmpeg until test is skipped if not installed
-          conda install astra-toolbox ffmpeg
+          # tomli is needed for `test_version`, it should be possible to remove in the future
+          # https://github.com/usnistgov/etspy/issues/24
+          conda install astra-toolbox ffmpeg tomli
 
       - name: Install extensions (release)
         if: ${{ contains(inputs.EXTENSION_VERSION, 'release') }}
@@ -411,7 +413,8 @@ jobs:
         if: ${{ always() && contains(inputs.EXTENSIONS, 'etspy') }}
         working-directory: ${{ runner.temp }}
         run: |
-          pytest --pyargs etspy
+          # https://github.com/usnistgov/etspy/issues/24
+          pytest --pyargs etspy -k "not test_version"
 
       - name: Run atomap Test Suite
         if: ${{ always() && contains(inputs.EXTENSIONS, 'atomap') }}
