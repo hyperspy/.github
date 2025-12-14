@@ -457,10 +457,23 @@ jobs:
       - name: Run Pyxem Test Suite
         if: ${{ always() && contains(inputs.EXTENSIONS, 'pyxem') }}
         working-directory: ${{ runner.temp }}
+        id: pyxem_tests
         run: |
           # https://github.com/pyxem/pyxem/issues/1153
           # https://github.com/pyxem/pyxem/issues/1174
-          pytest --pyargs pyxem -k "not TestAddEllipseArrayAsMarkers and not test_ransac_ellipse_tools"
+          pytest --pyargs pyxem ${{ env.PYTEST_LOG_ARGS }} -k "not TestAddEllipseArrayAsMarkers and not test_ransac_ellipse_tools"
+
+      - name: Report Pyxem test failures as GitHub Issue
+        if: |
+          failure()
+          && inputs.REPORT_FAILURE_AS_ISSUE
+          && github.repository == 'hyperspy/hyperspy-extensions-list'
+          && steps.pyxem_tests.outcome == 'failure'
+        uses: scientific-python/issue-from-pytest-log-action@558a3dfdd251069b328d3fded994824ddbefc47b
+        with:
+          log-path: ${{ runner.temp }}/pytest-log.jsonl
+          issue-title: ⚠️ Pyxem test suite failed ⚠️
+          assignees: "CSSFrancis"
 
       - name: Run holospy Test Suite
         if: ${{ always() && contains(inputs.EXTENSIONS, 'holospy') }}
