@@ -442,8 +442,21 @@ jobs:
       - name: Run LumiSpy Test Suite
         if: ${{ always() && contains(inputs.EXTENSIONS, 'lumispy') || env.REPOSITORY_NAME == 'lumispy' }}
         working-directory: ${{ runner.temp }}
+        id: lumispy_tests
         run: |
-          pytest --pyargs lumispy
+          pytest --pyargs lumispy ${{ env.PYTEST_LOG_ARGS }}
+
+      - name: Report LumiSpy test failures as GitHub Issue
+        if: |
+          failure()
+          && inputs.REPORT_FAILURE_AS_ISSUE
+          && github.repository == 'hyperspy/hyperspy-extensions-list'
+          && steps.lumispy_tests.outcome == 'failure'
+        uses: scientific-python/issue-from-pytest-log-action@558a3dfdd251069b328d3fded994824ddbefc47b
+        with:
+          log-path: ${{ runner.temp }}/pytest-log.jsonl
+          issue-title: ⚠️ LumiSpy test suite failed ⚠️
+          assignees: "jlaehne"
 
       - name: Run hyperspy_gui_ipywidgets Test Suite
         if: ${{ always() && contains(inputs.EXTENSIONS, 'hyperspy-gui-ipywidgets') || env.REPOSITORY_NAME == 'hyperspy_gui_ipywidgets' }}
