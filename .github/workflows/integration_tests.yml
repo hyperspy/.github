@@ -419,12 +419,25 @@ jobs:
       - name: Run RosettaSciIO Test Suite
         if: ${{ always() }}
         working-directory: ${{ runner.temp }}
+        id: rosettasciio_tests
         run: |
           # mrcz doesn't support python 3.12 and above because of dependence on distutils
           # https://github.com/em-MRCZ/python-mrcz/pull/16
           # distutils is vendored in setuptools, which can be misleading 
           # pyusid doesn't support numpy 2
-          pytest --pyargs rsciio ${{ env.PYTEST_ARGS }} -k "not test_mrcz.py and not test_usid.py"
+          pytest --pyargs rsciio ${{ env.PYTEST_ARGS }} ${{ env.PYTEST_LOG_ARGS }} -k "not test_mrcz.py and not test_usid.py"
+
+      - name: Report RosettaSciIO test failures as GitHub Issue
+        if: |
+          failure()
+          && inputs.REPORT_FAILURE_AS_ISSUE
+          && github.repository == 'hyperspy/hyperspy-extensions-list'
+          && steps.rosettasciio_tests.outcome == 'failure'
+        uses: scientific-python/issue-from-pytest-log-action@558a3dfdd251069b328d3fded994824ddbefc47b
+        with:
+          log-path: ${{ runner.temp }}/pytest-log.jsonl
+          issue-title: ⚠️ RosettaSciIO test suite failed ⚠️
+          assignees: "ericpre, jlaehne, CSSFrancis"
 
       - name: Run LumiSpy Test Suite
         if: ${{ always() && contains(inputs.EXTENSIONS, 'lumispy') || env.REPOSITORY_NAME == 'lumispy' }}
