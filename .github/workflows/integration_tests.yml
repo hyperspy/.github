@@ -74,6 +74,10 @@ on:
         description: 'A label to add to the job name.'
         default: ''
         type: string
+      REPORT_FAILURE_AS_ISSUE:
+        description: 'Whether to create a GitHub issue from pytest logs on failure. Needs issue write permissions.'
+        default: false
+        type: boolean
 
 jobs:
   integration_test:
@@ -144,9 +148,9 @@ jobs:
       - name: Install test dependencies
         run: |
           if [[ "${{ inputs.USE_CONDA }}" == "true" ]]; then
-            conda install ${{ inputs.TEST_DEPS }}
+            conda install ${{ inputs.TEST_DEPS }} pytest-reportlog
           else
-            pip install ${{ inputs.TEST_DEPS }}
+            pip install ${{ inputs.TEST_DEPS }} pytest-reportlog
           fi
 
       - name: Install numba development version
@@ -183,8 +187,12 @@ jobs:
         run: |
           # it shouldn't be necessary to set `--dist=loadfile` because it should already
           # set as default in the pytest configuration, but it doesn't seem to work...
-          PYTEST_ARGS="--reruns 3 -n ${{ steps.cpus.outputs.count }} --dist=loadfile"
+          if [[ "${{ env.PYTEST_ARGS }}" == "true" ]]; then
+            PYTEST_ARGS="--reruns 3 -n ${{ steps.cpus.outputs.count }} --dist=loadfile"
+          fi
+          PYTEST_LOG_ARGS="--report-log=${{ runner.temp }}/pytest-log.jsonl"
           echo "PYTEST_ARGS=${PYTEST_ARGS}" >> $GITHUB_ENV
+          echo "PYTEST_LOG_ARGS=${PYTEST_LOG_ARGS}" >> $GITHUB_ENV
 
       - name: Install astra-toolbox and test dependencies
         if: ${{ contains(inputs.EXTENSIONS, 'etspy') }}
@@ -348,10 +356,23 @@ jobs:
       - name: Run HyperSpy Test Suite
         if: ${{ always() }}
         working-directory: ${{ runner.temp }}
+        id: hyperspy_tests
         run: |
           # https://github.com/hyperspy/hyperspy/issues/3536
           # Fixed in https://github.com/hyperspy/hyperspy/pull/3554
-          pytest --pyargs hyperspy ${{ env.PYTEST_ARGS }} -k "not test_arpack and not map_values_std_isset"
+          pytest --pyargs hyperspy ${{ env.PYTEST_ARGS }} ${{ env.PYTEST_LOG_ARGS }} -k "not test_arpack and not map_values_std_isset"
+
+      - name: Report HyperSpy test failures as GitHub Issue
+        if: |
+          failure()
+          && inputs.REPORT_FAILURE_AS_ISSUE
+          && github.repository == 'hyperspy/hyperspy-extensions-list'
+          && steps.hyperspy_tests.outcome == 'failure'
+        uses: scientific-python/issue-from-pytest-log-action@558a3dfdd251069b328d3fded994824ddbefc47b
+        with:
+          log-path: ${{ runner.temp }}/pytest-log.jsonl
+          issue-title: ⚠️ HyperSpy test suite failed ⚠️
+          assignees: "ericpre"
 
       - name: Run RosettaSciIO Test Suite
         if: ${{ always() }}
