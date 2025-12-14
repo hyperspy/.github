@@ -516,10 +516,23 @@ jobs:
       - name: Run kikuchipy Test Suite
         if: ${{ always() && contains(inputs.EXTENSIONS, 'kikuchipy') }}
         working-directory: ${{ runner.temp }}
+        id: kikuchipy_tests
         run: |
           # https://github.com/pyxem/kikuchipy/issues/707
           # https://github.com/pyxem/kikuchipy/pull/749
-          pytest --pyargs kikuchipy -k "not test_not_allow_download_raises and not spherical"
+          pytest --pyargs kikuchipy ${{ env.PYTEST_LOG_ARGS }} -k "not test_not_allow_download_raises and not spherical"
+
+      - name: Report kikuchipy test failures as GitHub Issue
+        if: |
+          failure()
+          && inputs.REPORT_FAILURE_AS_ISSUE
+          && github.repository == 'hyperspy/hyperspy-extensions-list'
+          && steps.kikuchipy_tests.outcome == 'failure'
+        uses: scientific-python/issue-from-pytest-log-action@558a3dfdd251069b328d3fded994824ddbefc47b
+        with:
+          log-path: ${{ runner.temp }}/pytest-log.jsonl
+          issue-title: ⚠️ kikuchipy test suite failed ⚠️
+          assignees: "hakonanes"
 
       - name: Run etspy Test Suite
         if: ${{ always() && contains(inputs.EXTENSIONS, 'etspy') }}
