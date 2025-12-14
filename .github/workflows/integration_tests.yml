@@ -560,11 +560,24 @@ jobs:
         # skip dev version until https://github.com/pyxem/kikuchipy/pull/768 is sorted
         if: ${{ always() && contains(inputs.EXTENSIONS, 'kikuchipy') && inputs.EXTENSION_VERSION != 'dev' || env.REPOSITORY_NAME == 'kikuchipy' }}
         working-directory: ${{ runner.temp }}
+        id: kikuchipy_tests
         run: |
           # https://github.com/pyxem/kikuchipy/issues/707
           # https://github.com/pyxem/kikuchipy/pull/749
           # test_dataset_availability: don't test dataset availability to avoid hitting rate limits from zenodo
-          pytest --pyargs kikuchipy -k "not test_not_allow_download_raises and not spherical and not test_dataset_availability"
+          pytest --pyargs kikuchipy ${{ env.PYTEST_LOG_ARGS }} -k "not test_not_allow_download_raises and not spherical and not test_dataset_availability"
+
+      - name: Report kikuchipy test failures as GitHub Issue
+        if: |
+          failure()
+          && inputs.REPORT_FAILURE_AS_ISSUE
+          && github.repository == 'hyperspy/hyperspy-extensions-list'
+          && steps.kikuchipy_tests.outcome == 'failure'
+        uses: scientific-python/issue-from-pytest-log-action@558a3dfdd251069b328d3fded994824ddbefc47b
+        with:
+          log-path: ${{ runner.temp }}/pytest-log.jsonl
+          issue-title: ⚠️ kikuchipy test suite failed ⚠️
+          assignees: "hakonanes"
 
       - name: Run etspy Test Suite
         if: ${{ always() && contains(inputs.EXTENSIONS, 'etspy') || env.REPOSITORY_NAME == 'etspy' }}
