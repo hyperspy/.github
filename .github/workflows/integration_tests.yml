@@ -602,15 +602,20 @@ jobs:
       - name: Run atomap Test Suite
         if: ${{ always() && contains(inputs.EXTENSIONS, 'atomap') || env.REPOSITORY_NAME == 'atomap' }}
         working-directory: ${{ runner.temp }}
+        id: atomap_tests
         run: |
           # don't run tests that require a gui
           # https://github.com/atomap-dev/atomap/pull/2
-          pytest --pyargs atomap -k "not test_gui_function_qt"
+          pytest --pyargs atomap ${{ env.PYTEST_LOG_ARGS }} -k "not test_gui_function_qt"
 
-      - name: Show content of all pooch caches
-        if: ${{ always() && inputs.CACHE_POOCH != '' }}
-        run: |
-          for cache_path in ${{ env.POOCH_CACHE_PATHS }}; do
-            echo "Contents of pooch cache path: $cache_path"
-            ls -lR $cache_path || echo "Pooch cache path $cache_path does not exist."
-          done
+      - name: Report atomap test failures as GitHub Issue
+        if: |
+          failure()
+          && inputs.REPORT_FAILURE_AS_ISSUE
+          && github.repository == 'hyperspy/hyperspy-extensions-list'
+          && steps.atomap_tests.outcome == 'failure'
+        uses: scientific-python/issue-from-pytest-log-action@558a3dfdd251069b328d3fded994824ddbefc47b
+        with:
+          log-path: ${{ runner.temp }}/pytest-log.jsonl
+          issue-title: ⚠️ atomap test suite failed ⚠️
+          assignees: "magnunor"
