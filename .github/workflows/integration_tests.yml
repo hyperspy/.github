@@ -582,9 +582,22 @@ jobs:
       - name: Run etspy Test Suite
         if: ${{ always() && contains(inputs.EXTENSIONS, 'etspy') || env.REPOSITORY_NAME == 'etspy' }}
         working-directory: ${{ runner.temp }}
+        id: etspy_tests
         run: |
           # https://github.com/usnistgov/etspy/issues/24
-          pytest --pyargs etspy -k "not test_version"
+          pytest --pyargs etspy ${{ env.PYTEST_LOG_ARGS }} -k "not test_version"
+
+      - name: Report etspy test failures as GitHub Issue
+        if: |
+          failure()
+          && inputs.REPORT_FAILURE_AS_ISSUE
+          && github.repository == 'hyperspy/hyperspy-extensions-list'
+          && steps.etspy_tests.outcome == 'failure'
+        uses: scientific-python/issue-from-pytest-log-action@558a3dfdd251069b328d3fded994824ddbefc47b
+        with:
+          log-path: ${{ runner.temp }}/pytest-log.jsonl
+          issue-title: ⚠️ etspy test suite failed ⚠️
+          assignees: "AndrewHerzing"
 
       - name: Run atomap Test Suite
         if: ${{ always() && contains(inputs.EXTENSIONS, 'atomap') || env.REPOSITORY_NAME == 'atomap' }}
