@@ -327,7 +327,7 @@ jobs:
           echo "POOCH_CACHE_PATHS=$(cat pooch_cache_paths.txt)" >> $GITHUB_ENV
 
       - name: Cache pooch data
-        if: ${{ inputs.CACHE_POOCH != '' }}
+        if: ${{ always() && inputs.CACHE_POOCH != '' }}
         uses: actions/cache@v4
         env:
           # Increase this value to reset cache
@@ -348,7 +348,7 @@ jobs:
           python -c "from rsciio.tests import registry; print(f'ROSETTASCIIO_TEST_DATA={str(registry.TESTS_PATH / \"data\") }')" >> $GITHUB_ENV
 
       - name: Cache rosettasciio data
-        if: ${{ env.REPOSITORY_NAME != 'rosettasciio' }} # only for repositories that are not rosettasciio
+        if: ${{ always() && env.REPOSITORY_NAME != 'rosettasciio' }} # only for repositories that are not rosettasciio
         uses: actions/cache@v4
         env:
           # Increase this value to reset cache
@@ -455,7 +455,7 @@ jobs:
           pytest --pyargs atomap -k "not test_gui_function_qt"
 
       - name: Show content of all pooch caches
-        if: ${{ inputs.CACHE_POOCH != '' }}
+        if: ${{ always() && inputs.CACHE_POOCH != '' }}
         run: |
           for cache_path in ${{ env.POOCH_CACHE_PATHS }}; do
             echo "Contents of pooch cache path: $cache_path"
