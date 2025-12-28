@@ -111,6 +111,9 @@ jobs:
       REPOSITORY_NAME: ${{ needs.package.outputs.REPOSITORY_NAME }}
       LIBRARY_NAME: ${{ inputs.library_name }}
       MODULE_NAME: ${{ inputs.module_name }}
+    defaults:
+      run:
+        shell: bash -el {0}
     steps:
       - uses: actions/setup-python@v6
         name: Install Python
@@ -119,7 +122,6 @@ jobs:
 
       - name: Install Ubuntu packages for Qt
         if: ${{ inputs.use_xvfb }}
-        shell: bash
         run: |
           sudo apt-get update
           sudo apt-get install qtbase5-dev
@@ -145,16 +147,14 @@ jobs:
         run: |
           ls -shR
 
-      - shell: bash
-        name: Get library name
+      - name: Get library name
         run: |
           if [ '${{ env.LIBRARY_NAME }}' = '' ]; then
             LIBRARY_NAME=${{ env.REPOSITORY_NAME }}
             echo "LIBRARY_NAME=${LIBRARY_NAME}" >> $GITHUB_ENV
           fi
 
-      - shell: bash
-        name: Get module name
+      - name: Get module name
         run: |
           if [ '${{ env.MODULE_NAME }}' = '' ]; then
             MODULE_NAME=${{ env.REPOSITORY_NAME }}
@@ -185,7 +185,7 @@ jobs:
         if: ${{ inputs.CACHE_POOCH != '' }}
         run: |
           # create list of pooch cache paths as a string (space separated)
-          python -c "import pooch; print(' '.join([str(pooch.os_cache(s)) for s in ${{ inputs.CACHE_POOCH }}.split(' ')])))" > pooch_cache_paths.txt
+          python -c "import pooch; print(' '.join([str(pooch.os_cache(s)) for s in ${{ inputs.CACHE_POOCH }}.split(' ')]))" > pooch_cache_paths.txt
           echo "POOCH_CACHE_PATHS=$(cat pooch_cache_paths.txt)" >> $GITHUB_ENV
 
       - name: Cache pooch data
