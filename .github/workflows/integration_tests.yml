@@ -408,7 +408,8 @@ jobs:
         run: |
           # https://github.com/pyxem/pyxem/issues/1153
           # https://github.com/pyxem/pyxem/issues/1174
-          pytest --pyargs pyxem -k "not TestAddEllipseArrayAsMarkers and not test_ransac_ellipse_tools"
+          # test_load_au_grating: skip to avoid hitting rate limits from zenodo
+          pytest --pyargs pyxem -k "not TestAddEllipseArrayAsMarkers and not test_ransac_ellipse_tools and not test_load_au_grating"
 
       - name: Run holospy Test Suite
         if: ${{ always() && contains(inputs.EXTENSIONS, 'holospy') }}
@@ -428,7 +429,8 @@ jobs:
         run: |
           # https://github.com/pyxem/kikuchipy/issues/707
           # https://github.com/pyxem/kikuchipy/pull/749
-          pytest --pyargs kikuchipy -k "not test_not_allow_download_raises and not spherical"
+          # test_dataset_availability: don't test dataset availability to avoid hitting rate limits from zenodo
+          pytest --pyargs kikuchipy -k "not test_not_allow_download_raises and not spherical and not test_dataset_availability"
 
       - name: Run etspy Test Suite
         if: ${{ always() && contains(inputs.EXTENSIONS, 'etspy') }}
