@@ -361,6 +361,12 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-integration-rosettasciio-${{ env.CACHE_NUMBER }}
 
+      - name: Download GOS data files
+        if: ${{ contains(inputs.EXTENSIONS, 'exspy') && inputs.EXTENSION_VERSION == 'dev'}}
+        # GOS files are needed for some hyperspy and hyperspy_gui_ipywidgets tests
+        run: |
+          python -c "from exspy._misc import _download_GOS_files; _download_GOS_files()"
+
       - name: Run HyperSpy Test Suite
         if: ${{ always() }}
         working-directory: ${{ runner.temp }}
@@ -368,7 +374,8 @@ jobs:
         run: |
           # https://github.com/hyperspy/hyperspy/issues/3536
           # Fixed in https://github.com/hyperspy/hyperspy/pull/3554
-          pytest --pyargs hyperspy ${{ env.PYTEST_ARGS }} ${{ env.PYTEST_LOG_ARGS }} -k "not test_arpack and not map_values_std_isset"
+          # skip test_missing_analytical_gradient and test_EELSModel_saving until exspy is released with the "_download_GOS_files" function
+          pytest --pyargs hyperspy ${{ env.PYTEST_ARGS }} ${{ env.PYTEST_LOG_ARGS }} -k "not test_arpack and not map_values_std_isset and not test_missing_analytical_gradient and not test_EELSModel_saving"
 
       - name: Report HyperSpy test failures as GitHub Issue
         if: |
@@ -402,7 +409,8 @@ jobs:
         if: ${{ always() && contains(inputs.EXTENSIONS, 'hyperspy-gui-ipywidgets') }}
         working-directory: ${{ runner.temp }}
         run: |
-          pytest --pyargs hyperspy_gui_ipywidgets
+          # until exspy is released with the "_download_GOS_files" function
+          pytest --pyargs hyperspy_gui_ipywidgets -k "not test_eels_component"
 
       - name: Run hyperspy_gui_traitsui Test Suite
         if: ${{ always() && contains(inputs.EXTENSIONS, 'hyperspy-gui-traitsui') }}
