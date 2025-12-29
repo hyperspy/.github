@@ -440,7 +440,8 @@ jobs:
           pytest --pyargs exspy -n 2
 
       - name: Run kikuchipy Test Suite
-        if: ${{ always() && contains(inputs.EXTENSIONS, 'kikuchipy') }}
+        # skip dev version until https://github.com/pyxem/kikuchipy/pull/768 is sorted
+        if: ${{ always() && contains(inputs.EXTENSIONS, 'kikuchipy') && inputs.EXTENSION_VERSION != 'dev' }}
         working-directory: ${{ runner.temp }}
         run: |
           # https://github.com/pyxem/kikuchipy/issues/707
