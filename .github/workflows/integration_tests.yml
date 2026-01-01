@@ -97,7 +97,7 @@ jobs:
       MPLBACKEND: agg
       PYTEST_ARGS: ${{ inputs.PYTEST_ARGS }}
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
         with: 
           fetch-depth: 0
           fetch-tags: true
@@ -124,7 +124,7 @@ jobs:
           conda install pip
 
       - name: Cache pip
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         env:
           # Increase this value to reset cache
           CACHE_NUMBER: 0
@@ -136,7 +136,7 @@ jobs:
 
       - name: Cache conda
         if: ${{ inputs.USE_CONDA }}
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         env:
           # Increase this value to reset cache
           CACHE_NUMBER: 0
@@ -329,7 +329,7 @@ jobs:
 
       - name: Cache pooch data
         if: ${{ always() && inputs.CACHE_POOCH != '' }}
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         env:
           # Increase this value to reset cache
           CACHE_NUMBER: 0
@@ -350,7 +350,7 @@ jobs:
 
       - name: Cache rosettasciio data
         if: ${{ always() && env.REPOSITORY_NAME != 'rosettasciio' }} # only for repositories that are not rosettasciio
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         env:
           # Increase this value to reset cache
           CACHE_NUMBER: 0
