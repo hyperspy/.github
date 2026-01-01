@@ -75,7 +75,7 @@ jobs:
       run:
         shell: bash -el {0}
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
         with:
           fetch-depth: 0
 
@@ -92,7 +92,7 @@ jobs:
           git fetch upstream --tags
 
       - name: Cache pip
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         env:
           # Increase this value to reset cache
           CACHE_NUMBER: 0
@@ -140,7 +140,7 @@ jobs:
 
       - name: Cache doc build
         if: ${{ inputs.CACHE_GALLERY_EXAMPLES }}
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         env:
           # Increase this value to reset cache
           CACHE_NUMBER: 0
@@ -169,7 +169,7 @@ jobs:
 
       - name: Cache pooch
         if: ${{ inputs.CACHE_POOCH != ''}}
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         env:
           # Increase this value to reset cache
           CACHE_NUMBER: 0
@@ -204,7 +204,7 @@ jobs:
           cd ${{ inputs.doc_path }}
           xvfb-run make SPHINXOPTS="${{ inputs.SPHINXOPTS }}" html
 
-      - uses: actions/upload-artifact@v5
+      - uses: actions/upload-artifact@v6
         with:
           path: ${{ inputs.doc_build_path }}
           name: ${{ inputs.artifact_name }} 
