@@ -1,0 +1,39 @@
+name: Extract release notes
+description: Extract the first release notes section from a changelog file
+
+inputs:
+  changelog:
+    description: Path to the changelog file
+    required: false
+    default: CHANGES.rst
+  heading-level:
+    description: >-
+      Heading level to extract. For RST: the adornment character
+      (e.g. '='). For Markdown: the heading depth as a number
+      (e.g. '2' for '##'). If omitted, the second distinct heading
+      level found in the file is used.
+    required: false
+    default: ''
+  output-name:
+    description: Name of the output variable to set. Defaults to 'release-notes'.
+    required: false
+    default: release-notes
+
+outputs:
+  release-notes:
+    description: The extracted release notes text (default output name)
+    value: ${{ steps.extract.outputs.release-notes }}
+
+runs:
+  using: composite
+  steps:
+    - name: Extract release notes
+      id: extract
+      shell: bash
+      run: |
+        args=("$GITHUB_ACTION_PATH/extract_release_notes.py" "${{ inputs.changelog }}")
+        if [ -n "${{ inputs.heading-level }}" ]; then
+          args+=(--heading-level "${{ inputs.heading-level }}")
+        fi
+        args+=(--output-name "${{ inputs.output-name }}")
+        python "${args[@]}"
