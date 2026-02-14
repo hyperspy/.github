@@ -1,0 +1,36 @@
+name: Download artifact
+description: Download a build artifact and display its contents.
+
+inputs:
+  name:
+    description: Name of the artifact to download
+    required: false
+    default: dist
+  path:
+    description: Destination path for the downloaded artifact
+    required: false
+    default: dist
+  pattern:
+    description: Pattern of the artifact to download
+    required: false
+    default: artifacts-*
+  merge-multiple:
+    description: Whether to merge multiple artifacts matching the pattern into the same destination path
+    required: false
+    default: false
+
+runs:
+  using: composite
+  steps:
+    - name: Download artifact
+      uses: actions/download-artifact@v7
+      with:
+        name: ${{ inputs.name }}
+        path: ${{ inputs.path }}
+        pattern: ${{ inputs.pattern }}
+        merge-multiple: ${{ inputs.merge-multiple }}
+
+    - name: Display downloaded files
+      shell: bash
+      run: |
+        ls -shR

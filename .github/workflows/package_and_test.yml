@@ -138,14 +138,11 @@ jobs:
         run: |
           pip install pyqt5 PyQtWebEngine
 
-      - uses: actions/download-artifact@v7
+      - name: Download distribution artefacts
+        uses: hyperspy/.github/.github/actions/download-artifact@main
         with:
           name: dist
           path: dist
-
-      - name: Display content working folder
-        run: |
-          ls -shR
 
       - name: Get library name
         run: |

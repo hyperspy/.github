@@ -1,0 +1,53 @@
+name: Create GitHub Release
+description: >-
+  Download distribution artefacts, extract release notes from a changelog,
+  and create a GitHub release with the artefacts attached.
+
+inputs:
+  changelog:
+    description: Path to the changelog file
+    required: false
+    default: CHANGES.rst
+  heading-level:
+    description: >-
+      Heading level to extract. For RST: the adornment character
+      (e.g. '='). For Markdown: the heading depth as a number
+      (e.g. '2' for '##'). If omitted, the second distinct heading
+      level found in the file is used.
+    required: false
+    default: ''
+  artifact-name:
+    description: Name of the artifact to download
+    required: false
+    default: dist
+  artifact-pattern:
+    description: Pattern of the artifact to download
+    required: false
+    default: artifacts-*
+
+runs:
+  using: composite
+  steps:
+    - name: Checkout code
+      uses: actions/checkout@v6
+
+    - name: Download and display distribution artefacts
+      uses: hyperspy/.github/.github/actions/download-artifact@main
+      with:
+        name: ${{ inputs.artifact-name }}
+        pattern: ${{ inputs.artifact-pattern }}
+        merge-multiple: true
+
+    - name: Extract release notes
+      id: release_notes
+      uses: hyperspy/.github/.github/actions/extract-release-notes@main
+      with:
+        changelog: ${{ inputs.changelog }}
+        heading-level: ${{ inputs.heading-level }}
+
+    - name: Create Release
+      id: create_release
+      uses: softprops/action-gh-release@a06a81a03ee405af7f2048a818ed3f03bbf83c7b
+      with:
+        body: ${{ steps.release_notes.outputs.release-notes }}
+        files: dist/*
