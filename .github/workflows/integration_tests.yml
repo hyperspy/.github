@@ -112,6 +112,13 @@ jobs:
           git remote add upstream https://github.com/hyperspy/${{ env.REPOSITORY_NAME }}.git
           git fetch upstream --tags
 
+      - uses: ssciwr/pooch-cache@v1
+        if: ${{ contains(inputs.EXTENSIONS, 'exspy')}}
+        with:
+          # to restore the pooch cache use for eXSpy for example
+          name: pooch
+          fail-on-cache-miss: true
+
       - uses: conda-incubator/setup-miniconda@v3
         with:
           miniforge-version: latest
@@ -360,12 +367,6 @@ jobs:
             ${{ runner.os }}-integration-rosettasciio-${{ env.CACHE_NUMBER }}
           restore-keys: |
             ${{ runner.os }}-integration-rosettasciio-${{ env.CACHE_NUMBER }}
-
-      - name: Download GOS data files
-        if: ${{ contains(inputs.EXTENSIONS, 'exspy') && inputs.EXTENSION_VERSION == 'dev'}}
-        # GOS files are needed for some hyperspy and hyperspy_gui_ipywidgets tests
-        run: |
-          python -c "from exspy._misc import _download_GOS_files; _download_GOS_files()"
 
       - name: Run HyperSpy Test Suite
         if: ${{ always() }}
