@@ -427,26 +427,26 @@ jobs:
           pytest --pyargs rsciio ${{ env.PYTEST_ARGS }} -k "not test_mrcz.py and not test_usid.py"
 
       - name: Run LumiSpy Test Suite
-        if: ${{ always() && contains(inputs.EXTENSIONS, 'lumispy')}}
+        if: ${{ always() && contains(inputs.EXTENSIONS, 'lumispy') || env.REPOSITORY_NAME == 'lumispy' }}
         working-directory: ${{ runner.temp }}
         run: |
           pytest --pyargs lumispy
 
       - name: Run hyperspy_gui_ipywidgets Test Suite
-        if: ${{ always() && contains(inputs.EXTENSIONS, 'hyperspy-gui-ipywidgets') }}
+        if: ${{ always() && contains(inputs.EXTENSIONS, 'hyperspy-gui-ipywidgets') || env.REPOSITORY_NAME == 'hyperspy_gui_ipywidgets' }}
         working-directory: ${{ runner.temp }}
         run: |
           # until exspy is released with the "_download_GOS_files" function
           pytest --pyargs hyperspy_gui_ipywidgets -k "not test_eels_component"
 
       - name: Run hyperspy_gui_traitsui Test Suite
-        if: ${{ always() && contains(inputs.EXTENSIONS, 'hyperspy-gui-traitsui') }}
+        if: ${{ always() && contains(inputs.EXTENSIONS, 'hyperspy-gui-traitsui') || env.REPOSITORY_NAME == 'hyperspy_gui_traitsui' }}
         working-directory: ${{ runner.temp }}
         run: |
           pytest --pyargs hyperspy_gui_traitsui
 
       - name: Run Pyxem Test Suite
-        if: ${{ always() && contains(inputs.EXTENSIONS, 'pyxem') }}
+        if: ${{ always() && contains(inputs.EXTENSIONS, 'pyxem') || env.REPOSITORY_NAME == 'pyxem' }}
         working-directory: ${{ runner.temp }}
         run: |
           # https://github.com/pyxem/pyxem/issues/1153
@@ -455,20 +455,20 @@ jobs:
           pytest --pyargs pyxem -k "not TestAddEllipseArrayAsMarkers and not test_ransac_ellipse_tools and not test_load_au_grating"
 
       - name: Run holospy Test Suite
-        if: ${{ always() && contains(inputs.EXTENSIONS, 'holospy') }}
+        if: ${{ always() && contains(inputs.EXTENSIONS, 'holospy') || env.REPOSITORY_NAME == 'holospy' }}
         working-directory: ${{ runner.temp }}
         run: |
           pytest --pyargs holospy
 
       - name: Run exSpy Test Suite
-        if: ${{ always() && contains(inputs.EXTENSIONS, 'exspy') && inputs.EXTENSION_VERSION == 'dev' }}
+        if: ${{ always() && contains(inputs.EXTENSIONS, 'exspy') || env.REPOSITORY_NAME == 'exspy' }}
         working-directory: ${{ runner.temp }}
         run: |
           pytest --pyargs exspy -n 2
 
       - name: Run kikuchipy Test Suite
         # skip dev version until https://github.com/pyxem/kikuchipy/pull/768 is sorted
-        if: ${{ always() && contains(inputs.EXTENSIONS, 'kikuchipy') && inputs.EXTENSION_VERSION != 'dev' }}
+        if: ${{ always() && contains(inputs.EXTENSIONS, 'kikuchipy') && inputs.EXTENSION_VERSION != 'dev' || env.REPOSITORY_NAME == 'kikuchipy' }}
         working-directory: ${{ runner.temp }}
         run: |
           # https://github.com/pyxem/kikuchipy/issues/707
@@ -477,14 +477,14 @@ jobs:
           pytest --pyargs kikuchipy -k "not test_not_allow_download_raises and not spherical and not test_dataset_availability"
 
       - name: Run etspy Test Suite
-        if: ${{ always() && contains(inputs.EXTENSIONS, 'etspy') }}
+        if: ${{ always() && contains(inputs.EXTENSIONS, 'etspy') || env.REPOSITORY_NAME == 'etspy' }}
         working-directory: ${{ runner.temp }}
         run: |
           # https://github.com/usnistgov/etspy/issues/24
           pytest --pyargs etspy -k "not test_version"
 
       - name: Run atomap Test Suite
-        if: ${{ always() && contains(inputs.EXTENSIONS, 'atomap') }}
+        if: ${{ always() && contains(inputs.EXTENSIONS, 'atomap') || env.REPOSITORY_NAME == 'atomap' }}
         working-directory: ${{ runner.temp }}
         run: |
           # don't run tests that require a gui
