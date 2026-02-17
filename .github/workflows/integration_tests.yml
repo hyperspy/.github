@@ -63,6 +63,12 @@ on:
         description: 'A label to add to the pooch cache key.'
         default: 'pooch'
         type: string
+      RSCIIO_CACHE_POOCH_LABEL:
+        description: |
+          'The label to retrieve the RosettaSciIO test data cache - only used when `ROSETTASCIIO_VERSION` is "release".'
+          'The output of the `download_rsciio_test_data.yml` reusable workflow should be passed to this input to get the correct cache.'
+        default: ''
+        type: string
       PYTEST_ARGS:
         description: 'Additional arguments to pass to pytest.
                       If not provided, defaults to "--reruns 3 -n <number_of_cpus>".'
@@ -96,6 +102,7 @@ jobs:
     env:
       MPLBACKEND: agg
       PYTEST_ARGS: ${{ inputs.PYTEST_ARGS }}
+      RSCIIO_CACHE_POOCH_LABEL: ${{ inputs.RSCIIO_CACHE_POOCH_LABEL }}
     steps:
       - uses: actions/checkout@v6
         with: 
@@ -111,13 +118,6 @@ jobs:
         run: |
           git remote add upstream https://github.com/hyperspy/${{ env.REPOSITORY_NAME }}.git
           git fetch upstream --tags
-
-      - uses: ssciwr/pooch-cache@v1
-        if: ${{ contains(inputs.EXTENSIONS, 'exspy')}}
-        with:
-          # to restore the pooch cache use for eXSpy for example
-          name: pooch
-          fail-on-cache-miss: true
 
       - uses: conda-incubator/setup-miniconda@v3
         with:
@@ -346,27 +346,53 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-${{ inputs.CACHE_POOCH_LABEL }}-${{ env.CACHE_NUMBER }}
 
+      - uses: ssciwr/pooch-cache@v1
+        if: ${{ contains(inputs.EXTENSIONS, 'exspy') || env.REPOSITORY_NAME == 'exspy' }}
+        with:
+          # to restore the pooch cache use for eXSpy for example
+          # Needs download_exspy_GOS.yml reusable workflow to be run before for the cache to be available
+          name: pooch
+          fail-on-cache-miss: true
+
+      - name: Set RSCIIO_CACHE_POOCH_LABEL environment variable
+        if: ${{ env.REPOSITORY_NAME != 'rosettasciio' && inputs.ROSETTASCIIO_VERSION == 'dev' }}
+        run: |
+          # overwrite the RSCIIO_CACHE_POOCH_LABEL to "main" to get the latest test data cache for the dev version of RosettaSciIO
+          echo "RSCIIO_CACHE_POOCH_LABEL=main" >> $GITHUB_ENV
+          
+      - uses: ssciwr/pooch-cache@v1
+        if: ${{ env.REPOSITORY_NAME != 'rosettasciio' }}
+        with:
+          # to restore the RosettaSciIO test data cache
+          # Needs download_rsciio_test_data.yml reusable workflow to be run before for the cache to be available
+          name: rsciio-${{ env.RSCIIO_CACHE_POOCH_LABEL }}
+          fail-on-cache-miss: true
+
+      # Need https://github.com/hyperspy/rosettasciio/pull/482 to be released
+      # and remove the next step
+      # - name: Set RSCIIO_TEST_DATA_SOURCE environment variable
+      #   if: ${{ env.REPOSITORY_NAME != 'rosettasciio' }}
+      #   run: |
+      #     # Get the value `RSCIIO_TEST_DATA_SOURCE` from the pooch cache path
+      #     python -c "import pooch; print(f'RSCIIO_TEST_DATA_SOURCE={str(pooch.os_cache(\"rsciio-${{ env.RSCIIO_CACHE_POOCH_LABEL }}\"))}')" >> $GITHUB_ENV
+
+      - name: Copy RosettaSciIO test data from pooch cache
+        if: ${{ env.REPOSITORY_NAME != 'rosettasciio' }}
+        run: |
+          python -c "
+          import importlib.util, os, shutil, sys
+          from pathlib import Path
+          import pooch
+          src = pooch.os_cache('rsciio-${{ env.RSCIIO_CACHE_POOCH_LABEL }}')
+          dest = Path(importlib.util.find_spec('rsciio').origin).parent / 'tests' / 'data'
+          print(f'Copying from {src} to {dest}')
+          shutil.copytree(str(src), str(dest), dirs_exist_ok=True)
+          print(os.listdir(dest))
+          "
+
       - name: Conda list
         run: |
           conda list
-
-      - name: Get rosettasciio tests data location
-        if: ${{ env.REPOSITORY_NAME != 'rosettasciio' }} # only for repositories that are not rosettasciio
-        run: |
-          python -c "from rsciio.tests import registry; print(f'ROSETTASCIIO_TEST_DATA={str(registry.TESTS_PATH / \"data\") }')" >> $GITHUB_ENV
-
-      - name: Cache rosettasciio data
-        if: ${{ always() && env.REPOSITORY_NAME != 'rosettasciio' }} # only for repositories that are not rosettasciio
-        uses: actions/cache@v5
-        env:
-          # Increase this value to reset cache
-          CACHE_NUMBER: 0
-        with:
-          path: ${{ env.ROSETTASCIIO_TEST_DATA }}
-          key:
-            ${{ runner.os }}-integration-rosettasciio-${{ env.CACHE_NUMBER }}
-          restore-keys: |
-            ${{ runner.os }}-integration-rosettasciio-${{ env.CACHE_NUMBER }}
 
       - name: Run HyperSpy Test Suite
         if: ${{ always() }}

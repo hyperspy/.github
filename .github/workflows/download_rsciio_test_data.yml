@@ -1,0 +1,44 @@
+name: Download eXSpy GOS
+
+on:
+  workflow_call:
+    inputs:
+      VERSION:
+        description: The version of RosettaSciIO test data to download. It can be "release" or "main". Default is "release".
+        default: "release"
+        type: string
+    outputs:
+      VERSION:
+        description: The resolved version of RosettaSciIO test data (e.g. "v0.13").
+        value: ${{ jobs.download_cache_RosettaSciIO_tests_data.outputs.VERSION }}
+
+jobs:
+  download_cache_RosettaSciIO_tests_data:
+    name: Download & cache RosettaSciIO test data
+    runs-on: ubuntu-latest
+    outputs:
+      VERSION: ${{ steps.resolve_version.outputs.VERSION }}
+    env:
+      VERSION: ${{ inputs.VERSION }}
+    steps:
+  
+      - name: Get latest RosettaSciIO version
+        id: resolve_version
+        if: ${{ env.VERSION == 'release' }}
+        run: |
+          LATEST_VERSION=$(curl -s https://pypi.org/pypi/rosettasciio/json | jq -r '.info.version')
+          echo "Latest RosettaSciIO version: $LATEST_VERSION"
+          echo "VERSION=v$LATEST_VERSION" >> $GITHUB_ENV
+          echo "VERSION=v$LATEST_VERSION" >> $GITHUB_OUTPUT
+
+      - name: Download registry.txt
+        run: |
+          wget https://github.com/hyperspy/rosettasciio/raw/${{ env.VERSION }}/rsciio/tests/registry.txt
+
+      - uses: ssciwr/pooch-cache@v1
+        with:
+          name: rsciio-${{ env.VERSION }}
+          base-urls: |
+            https://github.com/hyperspy/rosettasciio/raw/${{ env.VERSION }}/rsciio/tests/data/
+          registry-files: |
+            registry.txt
