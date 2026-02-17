@@ -213,9 +213,7 @@ jobs:
         run: |
           # astra-toolbox is an etspy dependency
           # install ffmpeg until test is skipped if not installed
-          # tomli is needed for `test_version`, it should be possible to remove in the future
-          # https://github.com/usnistgov/etspy/issues/24
-          conda install astra-toolbox ffmpeg tomli
+          conda install astra-toolbox ffmpeg
 
       - name: Install extensions (release)
         if: ${{ contains(inputs.EXTENSION_VERSION, 'release') }}
@@ -414,87 +412,207 @@ jobs:
         with:
           log-path: ${{ runner.temp }}/pytest-log.jsonl
           issue-title: ⚠️ HyperSpy test suite failed ⚠️
-          assignees: "ericpre"
+          assignees: "ericpre, jlaehne, CSSFrancis"
 
       - name: Run RosettaSciIO Test Suite
         if: ${{ always() }}
         working-directory: ${{ runner.temp }}
+        id: rosettasciio_tests
         run: |
           # mrcz doesn't support python 3.12 and above because of dependence on distutils
           # https://github.com/em-MRCZ/python-mrcz/pull/16
           # distutils is vendored in setuptools, which can be misleading 
           # pyusid doesn't support numpy 2
-          pytest --pyargs rsciio ${{ env.PYTEST_ARGS }} -k "not test_mrcz.py and not test_usid.py"
+          pytest --pyargs rsciio ${{ env.PYTEST_ARGS }} ${{ env.PYTEST_LOG_ARGS }} -k "not test_mrcz.py and not test_usid.py"
+
+      - name: Report RosettaSciIO test failures as GitHub Issue
+        if: |
+          failure()
+          && inputs.REPORT_FAILURE_AS_ISSUE
+          && github.repository == 'hyperspy/hyperspy-extensions-list'
+          && steps.rosettasciio_tests.outcome == 'failure'
+        uses: scientific-python/issue-from-pytest-log-action@558a3dfdd251069b328d3fded994824ddbefc47b
+        with:
+          log-path: ${{ runner.temp }}/pytest-log.jsonl
+          issue-title: ⚠️ RosettaSciIO test suite failed ⚠️
+          assignees: "ericpre, jlaehne, CSSFrancis"
 
       - name: Run LumiSpy Test Suite
         if: ${{ always() && contains(inputs.EXTENSIONS, 'lumispy') || env.REPOSITORY_NAME == 'lumispy' }}
         working-directory: ${{ runner.temp }}
+        id: lumispy_tests
         run: |
-          pytest --pyargs lumispy
+          pytest --pyargs lumispy ${{ env.PYTEST_LOG_ARGS }}
+
+      - name: Report LumiSpy test failures as GitHub Issue
+        if: |
+          failure()
+          && inputs.REPORT_FAILURE_AS_ISSUE
+          && github.repository == 'hyperspy/hyperspy-extensions-list'
+          && steps.lumispy_tests.outcome == 'failure'
+        uses: scientific-python/issue-from-pytest-log-action@558a3dfdd251069b328d3fded994824ddbefc47b
+        with:
+          log-path: ${{ runner.temp }}/pytest-log.jsonl
+          issue-title: ⚠️ LumiSpy test suite failed ⚠️
+          assignees: "jlaehne"
 
       - name: Run hyperspy_gui_ipywidgets Test Suite
         if: ${{ always() && contains(inputs.EXTENSIONS, 'hyperspy-gui-ipywidgets') || env.REPOSITORY_NAME == 'hyperspy_gui_ipywidgets' }}
         working-directory: ${{ runner.temp }}
+        id: hyperspy_gui_ipywidgets_tests
         run: |
-          # until exspy is released with the "_download_GOS_files" function
-          pytest --pyargs hyperspy_gui_ipywidgets -k "not test_eels_component"
+          pytest --pyargs hyperspy_gui_ipywidgets ${{ env.PYTEST_LOG_ARGS }}
+
+      - name: Report hyperspy_gui_ipywidgets test failures as GitHub Issue
+        if: |
+          failure()
+          && inputs.REPORT_FAILURE_AS_ISSUE
+          && github.repository == 'hyperspy/hyperspy-extensions-list'
+          && steps.hyperspy_gui_ipywidgets_tests.outcome == 'failure'
+        uses: scientific-python/issue-from-pytest-log-action@558a3dfdd251069b328d3fded994824ddbefc47b
+        with:
+          log-path: ${{ runner.temp }}/pytest-log.jsonl
+          issue-title: ⚠️ hyperspy_gui_ipywidgets test suite failed ⚠️
+          assignees: "ericpre, jlaehne, CSSFrancis"
 
       - name: Run hyperspy_gui_traitsui Test Suite
         if: ${{ always() && contains(inputs.EXTENSIONS, 'hyperspy-gui-traitsui') || env.REPOSITORY_NAME == 'hyperspy_gui_traitsui' }}
         working-directory: ${{ runner.temp }}
+        id: hyperspy_gui_traitsui_tests
         run: |
-          pytest --pyargs hyperspy_gui_traitsui
+          pytest --pyargs hyperspy_gui_traitsui ${{ env.PYTEST_LOG_ARGS }}
+
+      - name: Report hyperspy_gui_traitsui test failures as GitHub Issue
+        if: |
+          failure()
+          && inputs.REPORT_FAILURE_AS_ISSUE
+          && github.repository == 'hyperspy/hyperspy-extensions-list'
+          && steps.hyperspy_gui_traitsui_tests.outcome == 'failure'
+        uses: scientific-python/issue-from-pytest-log-action@558a3dfdd251069b328d3fded994824ddbefc47b
+        with:
+          log-path: ${{ runner.temp }}/pytest-log.jsonl
+          issue-title: ⚠️ hyperspy_gui_traitsui test suite failed ⚠️
+          assignees: "ericpre, jlaehne, CSSFrancis"
 
       - name: Run Pyxem Test Suite
         if: ${{ always() && contains(inputs.EXTENSIONS, 'pyxem') || env.REPOSITORY_NAME == 'pyxem' }}
         working-directory: ${{ runner.temp }}
+        id: pyxem_tests
         run: |
           # https://github.com/pyxem/pyxem/issues/1153
           # https://github.com/pyxem/pyxem/issues/1174
           # test_load_au_grating: skip to avoid hitting rate limits from zenodo
-          pytest --pyargs pyxem -k "not TestAddEllipseArrayAsMarkers and not test_ransac_ellipse_tools and not test_load_au_grating"
+          pytest --pyargs pyxem ${{ env.PYTEST_LOG_ARGS }} -k "not TestAddEllipseArrayAsMarkers and not test_ransac_ellipse_tools and not test_load_au_grating"
+
+      - name: Report Pyxem test failures as GitHub Issue
+        if: |
+          failure()
+          && inputs.REPORT_FAILURE_AS_ISSUE
+          && github.repository == 'hyperspy/hyperspy-extensions-list'
+          && steps.pyxem_tests.outcome == 'failure'
+        uses: scientific-python/issue-from-pytest-log-action@558a3dfdd251069b328d3fded994824ddbefc47b
+        with:
+          log-path: ${{ runner.temp }}/pytest-log.jsonl
+          issue-title: ⚠️ Pyxem test suite failed ⚠️
+          assignees: "CSSFrancis"
 
       - name: Run holospy Test Suite
         if: ${{ always() && contains(inputs.EXTENSIONS, 'holospy') || env.REPOSITORY_NAME == 'holospy' }}
         working-directory: ${{ runner.temp }}
+        id: holospy_tests
         run: |
-          pytest --pyargs holospy
+          pytest --pyargs holospy ${{ env.PYTEST_LOG_ARGS }}
+
+      - name: Report holospy test failures as GitHub Issue
+        if: |
+          failure()
+          && inputs.REPORT_FAILURE_AS_ISSUE
+          && github.repository == 'hyperspy/hyperspy-extensions-list'
+          && steps.holospy_tests.outcome == 'failure'
+        uses: scientific-python/issue-from-pytest-log-action@558a3dfdd251069b328d3fded994824ddbefc47b
+        with:
+          log-path: ${{ runner.temp }}/pytest-log.jsonl
+          issue-title: ⚠️ holospy test suite failed ⚠️
+          assignees: "ericpre, jlaehne, CSSFrancis"
 
       - name: Run exSpy Test Suite
         if: ${{ always() && contains(inputs.EXTENSIONS, 'exspy') || env.REPOSITORY_NAME == 'exspy' }}
         working-directory: ${{ runner.temp }}
+        id: exspy_tests
         run: |
-          pytest --pyargs exspy -n 2
+          pytest --pyargs exspy ${{ env.PYTEST_LOG_ARGS }}
+
+      - name: Report exSpy test failures as GitHub Issue
+        if: |
+          failure()
+          && inputs.REPORT_FAILURE_AS_ISSUE
+          && github.repository == 'hyperspy/hyperspy-extensions-list'
+          && steps.exspy_tests.outcome == 'failure'
+        uses: scientific-python/issue-from-pytest-log-action@558a3dfdd251069b328d3fded994824ddbefc47b
+        with:
+          log-path: ${{ runner.temp }}/pytest-log.jsonl
+          issue-title: ⚠️ exSpy test suite failed ⚠️
+          assignees: "ericpre, jlaehne, CSSFrancis"
 
       - name: Run kikuchipy Test Suite
         # skip dev version until https://github.com/pyxem/kikuchipy/pull/768 is sorted
         if: ${{ always() && contains(inputs.EXTENSIONS, 'kikuchipy') && inputs.EXTENSION_VERSION != 'dev' || env.REPOSITORY_NAME == 'kikuchipy' }}
         working-directory: ${{ runner.temp }}
+        id: kikuchipy_tests
         run: |
           # https://github.com/pyxem/kikuchipy/issues/707
           # https://github.com/pyxem/kikuchipy/pull/749
           # test_dataset_availability: don't test dataset availability to avoid hitting rate limits from zenodo
-          pytest --pyargs kikuchipy -k "not test_not_allow_download_raises and not spherical and not test_dataset_availability"
+          pytest --pyargs kikuchipy ${{ env.PYTEST_LOG_ARGS }} -k "not test_not_allow_download_raises and not spherical and not test_dataset_availability"
+
+      - name: Report kikuchipy test failures as GitHub Issue
+        if: |
+          failure()
+          && inputs.REPORT_FAILURE_AS_ISSUE
+          && github.repository == 'hyperspy/hyperspy-extensions-list'
+          && steps.kikuchipy_tests.outcome == 'failure'
+        uses: scientific-python/issue-from-pytest-log-action@558a3dfdd251069b328d3fded994824ddbefc47b
+        with:
+          log-path: ${{ runner.temp }}/pytest-log.jsonl
+          issue-title: ⚠️ kikuchipy test suite failed ⚠️
+          assignees: "hakonanes"
 
       - name: Run etspy Test Suite
         if: ${{ always() && contains(inputs.EXTENSIONS, 'etspy') || env.REPOSITORY_NAME == 'etspy' }}
         working-directory: ${{ runner.temp }}
+        id: etspy_tests
         run: |
-          # https://github.com/usnistgov/etspy/issues/24
-          pytest --pyargs etspy -k "not test_version"
+          pytest --pyargs etspy ${{ env.PYTEST_LOG_ARGS }}
+
+      - name: Report etspy test failures as GitHub Issue
+        if: |
+          failure()
+          && inputs.REPORT_FAILURE_AS_ISSUE
+          && github.repository == 'hyperspy/hyperspy-extensions-list'
+          && steps.etspy_tests.outcome == 'failure'
+        uses: scientific-python/issue-from-pytest-log-action@558a3dfdd251069b328d3fded994824ddbefc47b
+        with:
+          log-path: ${{ runner.temp }}/pytest-log.jsonl
+          issue-title: ⚠️ etspy test suite failed ⚠️
+          assignees: "AndrewHerzing"
 
       - name: Run atomap Test Suite
         if: ${{ always() && contains(inputs.EXTENSIONS, 'atomap') || env.REPOSITORY_NAME == 'atomap' }}
         working-directory: ${{ runner.temp }}
+        id: atomap_tests
         run: |
           # don't run tests that require a gui
           # https://github.com/atomap-dev/atomap/pull/2
-          pytest --pyargs atomap -k "not test_gui_function_qt"
+          pytest --pyargs atomap ${{ env.PYTEST_LOG_ARGS }} -k "not test_gui_function_qt"
 
-      - name: Show content of all pooch caches
-        if: ${{ always() && inputs.CACHE_POOCH != '' }}
-        run: |
-          for cache_path in ${{ env.POOCH_CACHE_PATHS }}; do
-            echo "Contents of pooch cache path: $cache_path"
-            ls -lR $cache_path || echo "Pooch cache path $cache_path does not exist."
-          done
+      - name: Report atomap test failures as GitHub Issue
+        if: |
+          failure()
+          && inputs.REPORT_FAILURE_AS_ISSUE
+          && github.repository == 'hyperspy/hyperspy-extensions-list'
+          && steps.atomap_tests.outcome == 'failure'
+        uses: scientific-python/issue-from-pytest-log-action@558a3dfdd251069b328d3fded994824ddbefc47b
+        with:
+          log-path: ${{ runner.temp }}/pytest-log.jsonl
+          issue-title: ⚠️ atomap test suite failed ⚠️
+          assignees: "magnunor"
