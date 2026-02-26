@@ -412,7 +412,7 @@ jobs:
         with:
           log-path: ${{ runner.temp }}/pytest-log.jsonl
           issue-title: ⚠️ HyperSpy test suite failed ⚠️
-          assignees: "ericpre, jlaehne, CSSFrancis"
+          assignees: "ericpre,jlaehne,CSSFrancis"
 
       - name: Run RosettaSciIO Test Suite
         if: ${{ always() }}
@@ -435,7 +435,7 @@ jobs:
         with:
           log-path: ${{ runner.temp }}/pytest-log.jsonl
           issue-title: ⚠️ RosettaSciIO test suite failed ⚠️
-          assignees: "ericpre, jlaehne, CSSFrancis"
+          assignees: "ericpre,jlaehne,CSSFrancis"
 
       - name: Run LumiSpy Test Suite
         if: ${{ always() && contains(inputs.EXTENSIONS, 'lumispy') || env.REPOSITORY_NAME == 'lumispy' }}
@@ -473,7 +473,7 @@ jobs:
         with:
           log-path: ${{ runner.temp }}/pytest-log.jsonl
           issue-title: ⚠️ hyperspy_gui_ipywidgets test suite failed ⚠️
-          assignees: "ericpre, jlaehne, CSSFrancis"
+          assignees: "ericpre,jlaehne,CSSFrancis"
 
       - name: Run hyperspy_gui_traitsui Test Suite
         if: ${{ always() && contains(inputs.EXTENSIONS, 'hyperspy-gui-traitsui') || env.REPOSITORY_NAME == 'hyperspy_gui_traitsui' }}
@@ -492,7 +492,7 @@ jobs:
         with:
           log-path: ${{ runner.temp }}/pytest-log.jsonl
           issue-title: ⚠️ hyperspy_gui_traitsui test suite failed ⚠️
-          assignees: "ericpre, jlaehne, CSSFrancis"
+          assignees: "ericpre,jlaehne,CSSFrancis"
 
       - name: Run Pyxem Test Suite
         if: ${{ always() && contains(inputs.EXTENSIONS, 'pyxem') || env.REPOSITORY_NAME == 'pyxem' }}
@@ -533,7 +533,7 @@ jobs:
         with:
           log-path: ${{ runner.temp }}/pytest-log.jsonl
           issue-title: ⚠️ holospy test suite failed ⚠️
-          assignees: "ericpre, jlaehne, CSSFrancis"
+          assignees: "ericpre,jlaehne,CSSFrancis"
 
       - name: Run exSpy Test Suite
         if: ${{ always() && contains(inputs.EXTENSIONS, 'exspy') || env.REPOSITORY_NAME == 'exspy' }}
@@ -552,7 +552,7 @@ jobs:
         with:
           log-path: ${{ runner.temp }}/pytest-log.jsonl
           issue-title: ⚠️ exSpy test suite failed ⚠️
-          assignees: "ericpre, jlaehne, CSSFrancis"
+          assignees: "ericpre,jlaehne,CSSFrancis"
 
       - name: Run kikuchipy Test Suite
         # skip dev version until https://github.com/pyxem/kikuchipy/pull/768 is sorted
