@@ -408,7 +408,7 @@ jobs:
           && inputs.REPORT_FAILURE_AS_ISSUE
           && github.repository == 'hyperspy/hyperspy-extensions-list'
           && steps.hyperspy_tests.outcome == 'failure'
-        uses: scientific-python/issue-from-pytest-log-action@558a3dfdd251069b328d3fded994824ddbefc47b
+        uses: scientific-python/issue-from-pytest-log-action@8e905db353437cda1d6a773de245343fbfc940dd
         with:
           log-path: ${{ runner.temp }}/pytest-log.jsonl
           issue-title: ⚠️ HyperSpy test suite failed ⚠️
@@ -431,7 +431,7 @@ jobs:
           && inputs.REPORT_FAILURE_AS_ISSUE
           && github.repository == 'hyperspy/hyperspy-extensions-list'
           && steps.rosettasciio_tests.outcome == 'failure'
-        uses: scientific-python/issue-from-pytest-log-action@558a3dfdd251069b328d3fded994824ddbefc47b
+        uses: scientific-python/issue-from-pytest-log-action@8e905db353437cda1d6a773de245343fbfc940dd
         with:
           log-path: ${{ runner.temp }}/pytest-log.jsonl
           issue-title: ⚠️ RosettaSciIO test suite failed ⚠️
@@ -450,7 +450,7 @@ jobs:
           && inputs.REPORT_FAILURE_AS_ISSUE
           && github.repository == 'hyperspy/hyperspy-extensions-list'
           && steps.lumispy_tests.outcome == 'failure'
-        uses: scientific-python/issue-from-pytest-log-action@558a3dfdd251069b328d3fded994824ddbefc47b
+        uses: scientific-python/issue-from-pytest-log-action@8e905db353437cda1d6a773de245343fbfc940dd
         with:
           log-path: ${{ runner.temp }}/pytest-log.jsonl
           issue-title: ⚠️ LumiSpy test suite failed ⚠️
@@ -469,7 +469,7 @@ jobs:
           && inputs.REPORT_FAILURE_AS_ISSUE
           && github.repository == 'hyperspy/hyperspy-extensions-list'
           && steps.hyperspy_gui_ipywidgets_tests.outcome == 'failure'
-        uses: scientific-python/issue-from-pytest-log-action@558a3dfdd251069b328d3fded994824ddbefc47b
+        uses: scientific-python/issue-from-pytest-log-action@8e905db353437cda1d6a773de245343fbfc940dd
         with:
           log-path: ${{ runner.temp }}/pytest-log.jsonl
           issue-title: ⚠️ hyperspy_gui_ipywidgets test suite failed ⚠️
@@ -488,7 +488,7 @@ jobs:
           && inputs.REPORT_FAILURE_AS_ISSUE
           && github.repository == 'hyperspy/hyperspy-extensions-list'
           && steps.hyperspy_gui_traitsui_tests.outcome == 'failure'
-        uses: scientific-python/issue-from-pytest-log-action@558a3dfdd251069b328d3fded994824ddbefc47b
+        uses: scientific-python/issue-from-pytest-log-action@8e905db353437cda1d6a773de245343fbfc940dd
         with:
           log-path: ${{ runner.temp }}/pytest-log.jsonl
           issue-title: ⚠️ hyperspy_gui_traitsui test suite failed ⚠️
@@ -510,7 +510,7 @@ jobs:
           && inputs.REPORT_FAILURE_AS_ISSUE
           && github.repository == 'hyperspy/hyperspy-extensions-list'
           && steps.pyxem_tests.outcome == 'failure'
-        uses: scientific-python/issue-from-pytest-log-action@558a3dfdd251069b328d3fded994824ddbefc47b
+        uses: scientific-python/issue-from-pytest-log-action@8e905db353437cda1d6a773de245343fbfc940dd
         with:
           log-path: ${{ runner.temp }}/pytest-log.jsonl
           issue-title: ⚠️ Pyxem test suite failed ⚠️
@@ -529,7 +529,7 @@ jobs:
           && inputs.REPORT_FAILURE_AS_ISSUE
           && github.repository == 'hyperspy/hyperspy-extensions-list'
           && steps.holospy_tests.outcome == 'failure'
-        uses: scientific-python/issue-from-pytest-log-action@558a3dfdd251069b328d3fded994824ddbefc47b
+        uses: scientific-python/issue-from-pytest-log-action@8e905db353437cda1d6a773de245343fbfc940dd
         with:
           log-path: ${{ runner.temp }}/pytest-log.jsonl
           issue-title: ⚠️ holospy test suite failed ⚠️
@@ -548,7 +548,7 @@ jobs:
           && inputs.REPORT_FAILURE_AS_ISSUE
           && github.repository == 'hyperspy/hyperspy-extensions-list'
           && steps.exspy_tests.outcome == 'failure'
-        uses: scientific-python/issue-from-pytest-log-action@558a3dfdd251069b328d3fded994824ddbefc47b
+        uses: scientific-python/issue-from-pytest-log-action@8e905db353437cda1d6a773de245343fbfc940dd
         with:
           log-path: ${{ runner.temp }}/pytest-log.jsonl
           issue-title: ⚠️ exSpy test suite failed ⚠️
@@ -571,7 +571,7 @@ jobs:
           && inputs.REPORT_FAILURE_AS_ISSUE
           && github.repository == 'hyperspy/hyperspy-extensions-list'
           && steps.kikuchipy_tests.outcome == 'failure'
-        uses: scientific-python/issue-from-pytest-log-action@558a3dfdd251069b328d3fded994824ddbefc47b
+        uses: scientific-python/issue-from-pytest-log-action@8e905db353437cda1d6a773de245343fbfc940dd
         with:
           log-path: ${{ runner.temp }}/pytest-log.jsonl
           issue-title: ⚠️ kikuchipy test suite failed ⚠️
@@ -590,7 +590,7 @@ jobs:
           && inputs.REPORT_FAILURE_AS_ISSUE
           && github.repository == 'hyperspy/hyperspy-extensions-list'
           && steps.etspy_tests.outcome == 'failure'
-        uses: scientific-python/issue-from-pytest-log-action@558a3dfdd251069b328d3fded994824ddbefc47b
+        uses: scientific-python/issue-from-pytest-log-action@8e905db353437cda1d6a773de245343fbfc940dd
         with:
           log-path: ${{ runner.temp }}/pytest-log.jsonl
           issue-title: ⚠️ etspy test suite failed ⚠️
@@ -611,7 +611,7 @@ jobs:
           && inputs.REPORT_FAILURE_AS_ISSUE
           && github.repository == 'hyperspy/hyperspy-extensions-list'
           && steps.atomap_tests.outcome == 'failure'
-        uses: scientific-python/issue-from-pytest-log-action@558a3dfdd251069b328d3fded994824ddbefc47b
+        uses: scientific-python/issue-from-pytest-log-action@8e905db353437cda1d6a773de245343fbfc940dd
         with:
           log-path: ${{ runner.temp }}/pytest-log.jsonl
           issue-title: ⚠️ atomap test suite failed ⚠️
