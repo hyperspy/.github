@@ -58,7 +58,10 @@ on:
                       If empty (default), no caching is performed.'
         default: ''
         type: string  
-
+      SETUP_OLLAMA:
+        description: 'Whether to setup Ollama, which can be required to generate the summaries for the LLM-based extensions in the documentation build.'
+        default: false
+        type: boolean
 
 jobs:
   build:
@@ -127,6 +130,10 @@ jobs:
         name: Install Python
         with:
           python-version: '3.12'
+
+      - name: Setup Ollama
+        if: ${{ inputs.SETUP_OLLAMA }}
+        uses: ai-action/setup-ollama@71ea83e32be8721c648fa946c5da9853679a3803
 
       - name: Install library
         if: ${{ inputs.install_dependencies_only != true }}
