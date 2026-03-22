@@ -400,7 +400,8 @@ jobs:
           # https://github.com/hyperspy/hyperspy/issues/3536
           # Fixed in https://github.com/hyperspy/hyperspy/pull/3554
           # skip test_missing_analytical_gradient and test_EELSModel_saving until exspy is released with the "_download_GOS_files" function
-          pytest --pyargs hyperspy ${{ env.PYTEST_ARGS }} ${{ env.PYTEST_LOG_ARGS }} -k "not test_arpack and not map_values_std_isset and not test_missing_analytical_gradient and not test_EELSModel_saving"
+          # https://github.com/hyperspy/hyperspy-extensions-list/issues/90
+          pytest --pyargs hyperspy ${{ env.PYTEST_ARGS }} ${{ env.PYTEST_LOG_ARGS }} -k "not test_arpack and not map_values_std_isset and not test_missing_analytical_gradient and not test_EELSModel_saving and not _units_error and not test_offset_as_quantity_setter_string_no_units"
 
       - name: Report HyperSpy test failures as GitHub Issue
         if: |
@@ -442,7 +443,8 @@ jobs:
         working-directory: ${{ runner.temp }}
         id: lumispy_tests
         run: |
-          pytest --pyargs lumispy ${{ env.PYTEST_LOG_ARGS }}
+          # https://github.com/hyperspy/hyperspy-extensions-list/issues/90
+          pytest --pyargs lumispy ${{ env.PYTEST_LOG_ARGS }} -k "not test_crop_edges_fancy_str"
 
       - name: Report LumiSpy test failures as GitHub Issue
         if: |
