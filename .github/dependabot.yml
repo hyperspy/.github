@@ -6,7 +6,11 @@
 version: 2
 updates:
   - package-ecosystem: "github-actions" # See documentation for possible values
-    directory: "/" # Location of package manifests
+    directories:
+      # https://github.blog/changelog/2024-06-25-simplified-dependabot-yml-configuration-with-multi-directory-key-directories-and-wildcard-glob-support/
+      # https://docs.github.com/en/code-security/reference/supply-chain-security/dependabot-options-reference#directories
+      - "/.github/workflows"
+      - "/.github/actions/*"
     schedule:
       interval: "monthly"
     cooldown:
