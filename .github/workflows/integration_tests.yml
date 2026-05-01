@@ -119,7 +119,7 @@ jobs:
           git remote add upstream https://github.com/hyperspy/${{ env.REPOSITORY_NAME }}.git
           git fetch upstream --tags
 
-      - uses: conda-incubator/setup-miniconda@v3
+      - uses: conda-incubator/setup-miniconda@v3.3.0
         with:
           miniforge-version: latest
           python-version: ${{ inputs.PYTHON_VERSION }}
