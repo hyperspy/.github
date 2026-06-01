@@ -562,8 +562,7 @@ jobs:
         id: kikuchipy_tests
         run: |
           # test_not_allow_download_raises: https://github.com/pyxem/kikuchipy/issues/707
-          # spherical: https://github.com/pyxem/kikuchipy/pull/749
-          pytest --pyargs kikuchipy ${{ env.PYTEST_LOG_ARGS }} -k "not test_not_allow_download_raises and not spherical"
+          pytest --pyargs kikuchipy ${{ env.PYTEST_LOG_ARGS }} -k "not test_not_allow_download_raises"
 
       - name: Report kikuchipy test failures as GitHub Issue
         if: |
