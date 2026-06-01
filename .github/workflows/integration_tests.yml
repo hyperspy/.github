@@ -563,9 +563,7 @@ jobs:
         run: |
           # test_not_allow_download_raises: https://github.com/pyxem/kikuchipy/issues/707
           # spherical: https://github.com/pyxem/kikuchipy/pull/749
-          # test_dataset_availability: don't test dataset availability to avoid hitting rate limits from zenodo
-          # test_estimate_xtilt from kikuchipy 0.12.0 https://github.com/hyperspy/hyperspy-extensions-list/issues/96
-          pytest --pyargs kikuchipy ${{ env.PYTEST_LOG_ARGS }} -k "not test_not_allow_download_raises and not spherical and not test_dataset_availability and not test_estimate_xtilt"
+          pytest --pyargs kikuchipy ${{ env.PYTEST_LOG_ARGS }} -k "not test_not_allow_download_raises and not spherical"
 
       - name: Report kikuchipy test failures as GitHub Issue
         if: |
