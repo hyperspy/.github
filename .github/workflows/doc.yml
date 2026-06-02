@@ -133,7 +133,7 @@ jobs:
 
       - name: Setup Ollama
         if: ${{ inputs.SETUP_OLLAMA }}
-        uses: ai-action/setup-ollama@e1ea7c157f0c5124f0bbcdaba62ce7f80f4a7291
+        uses: ai-action/setup-ollama@7dc2079ce1e74ebd1849fcdea18ee7ba2472d929
 
       - name: Install library
         if: ${{ inputs.install_dependencies_only != true }}
