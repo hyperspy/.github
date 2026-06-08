@@ -596,7 +596,9 @@ jobs:
           assignees: "AndrewHerzing"
 
       - name: Run atomap Test Suite
-        if: ${{ always() && contains(inputs.EXTENSIONS, 'atomap') || env.REPOSITORY_NAME == 'atomap' }}
+        # Skip atomap tests with dependencies_dev
+        # https://github.com/hyperspy/hyperspy-extensions-list/issues/104
+        if: ${{ always() && contains(inputs.EXTENSIONS, 'atomap') && inputs.DEPENDENCIES_DEV == '' || env.REPOSITORY_NAME == 'atomap' }}
         working-directory: ${{ runner.temp }}
         id: atomap_tests
         run: |
