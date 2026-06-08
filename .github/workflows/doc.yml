@@ -170,9 +170,14 @@ jobs:
       - name: Get pooch cache paths
         if: ${{ inputs.CACHE_POOCH != '' }}
         run: |
-          # create list of pooch cache paths as a string (space separated)
-          python -c "import pooch; print(' '.join([str(pooch.os_cache('${{ inputs.CACHE_POOCH }}')), str(pooch.os_cache('pooch'))]))" > pooch_cache_paths.txt
-          echo "POOCH_CACHE_PATHS=$(cat pooch_cache_paths.txt)" >> $GITHUB_ENV
+          CACHE1=$(python -c "import pooch; print(pooch.os_cache('${{ inputs.CACHE_POOCH }}'))")
+          CACHE2=$(python -c "import pooch; print(pooch.os_cache('pooch'))")
+          {
+            echo 'POOCH_CACHE_PATHS<<EOF'
+            echo "$CACHE1"
+            echo "$CACHE2"
+            echo 'EOF'
+          } >> $GITHUB_ENV
 
       - name: Cache pooch
         if: ${{ inputs.CACHE_POOCH != ''}}
