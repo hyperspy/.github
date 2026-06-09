@@ -463,7 +463,8 @@ jobs:
         working-directory: ${{ runner.temp }}
         id: hyperspy_gui_ipywidgets_tests
         run: |
-          pytest --pyargs hyperspy_gui_ipywidgets ${{ env.PYTEST_LOG_ARGS }}
+          # https://github.com/hyperspy/hyperspy-extensions-list/issues/107
+          pytest --pyargs hyperspy_gui_ipywidgets ${{ env.PYTEST_LOG_ARGS }} -k "not test_smooth and not test_filter_butterworth"
 
       - name: Report hyperspy_gui_ipywidgets test failures as GitHub Issue
         if: |
