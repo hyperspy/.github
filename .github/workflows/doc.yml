@@ -145,6 +145,20 @@ jobs:
         run: |
           pip install -r requirements.txt
 
+      - name: Print build environment
+        # Records the exact Python/pip/Sphinx/docutils versions used in
+        # this run, so "works locally, fails in CI" reports are diffable
+        # without a round-trip to reproduce the env.
+        run: |
+          echo "::group::Python"
+          python --version
+          pip --version
+          echo "::endgroup::"
+          echo "::group::Doc build packages"
+          pip show sphinx docutils sphinx-gallery numpydoc pydata-sphinx-theme 2>/dev/null \
+            | grep -E "^(Name|Version|Location):" || true
+          echo "::endgroup::"
+
       - name: Cache doc build
         if: ${{ inputs.CACHE_GALLERY_EXAMPLES }}
         uses: actions/cache@v5
