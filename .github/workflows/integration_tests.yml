@@ -424,7 +424,8 @@ jobs:
           # https://github.com/em-MRCZ/python-mrcz/pull/16
           # distutils is vendored in setuptools, which can be misleading 
           # pyusid doesn't support numpy 2
-          pytest --pyargs rsciio ${{ env.PYTEST_ARGS }} ${{ env.PYTEST_LOG_ARGS }} -k "not test_mrcz.py and not test_usid.py"
+          # blockfile: https://github.com/hyperspy/rosettasciio/pull/527
+          pytest --pyargs rsciio ${{ env.PYTEST_ARGS }} ${{ env.PYTEST_LOG_ARGS }} -k "not test_mrcz.py and not test_usid.py and not test_blockfile.py"
 
       - name: Report RosettaSciIO test failures as GitHub Issue
         if: |
