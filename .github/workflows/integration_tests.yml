@@ -366,27 +366,12 @@ jobs:
           name: rsciio-${{ env.RSCIIO_CACHE_POOCH_LABEL }}
           fail-on-cache-miss: true
 
-      # Need https://github.com/hyperspy/rosettasciio/pull/482 to be released
-      # and remove the next step
-      # - name: Set RSCIIO_TEST_DATA_SOURCE environment variable
-      #   if: ${{ env.REPOSITORY_NAME != 'rosettasciio' }}
-      #   run: |
-      #     # Get the value `RSCIIO_TEST_DATA_SOURCE` from the pooch cache path
-      #     python -c "import pooch; print(f'RSCIIO_TEST_DATA_SOURCE={str(pooch.os_cache(\"rsciio-${{ env.RSCIIO_CACHE_POOCH_LABEL }}\"))}')" >> $GITHUB_ENV
-
-      - name: Copy RosettaSciIO test data from pooch cache
+      - name: Set RSCIIO_TEST_DATA_SOURCE environment variable
         if: ${{ env.REPOSITORY_NAME != 'rosettasciio' }}
         run: |
-          python -c "
-          import importlib.util, os, shutil, sys
-          from pathlib import Path
-          import pooch
-          src = pooch.os_cache('rsciio-${{ env.RSCIIO_CACHE_POOCH_LABEL }}')
-          dest = Path(importlib.util.find_spec('rsciio').origin).parent / 'tests' / 'data'
-          print(f'Copying from {src} to {dest}')
-          shutil.copytree(str(src), str(dest), dirs_exist_ok=True)
-          print(os.listdir(dest))
-          "
+          # Get the value `RSCIIO_TEST_DATA_SOURCE` from the pooch cache path
+          # RosettaSciIO will copy the test data from this path to the local test data folder when running the tests
+          python -c "import pooch; print(f'RSCIIO_TEST_DATA_SOURCE={str(pooch.os_cache(\"rsciio-${{ env.RSCIIO_CACHE_POOCH_LABEL }}\"))}')" >> $GITHUB_ENV
 
       - name: Conda list
         run: |
