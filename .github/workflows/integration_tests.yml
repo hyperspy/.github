@@ -104,7 +104,7 @@ jobs:
       PYTEST_ARGS: ${{ inputs.PYTEST_ARGS }}
       RSCIIO_CACHE_POOCH_LABEL: ${{ inputs.RSCIIO_CACHE_POOCH_LABEL }}
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
         with: 
           fetch-depth: 0
           fetch-tags: true
@@ -131,7 +131,7 @@ jobs:
           conda install pip
 
       - name: Cache pip
-        uses: actions/cache@v5
+        uses: actions/cache@v5.0.5
         env:
           # Increase this value to reset cache
           CACHE_NUMBER: 0
@@ -143,7 +143,7 @@ jobs:
 
       - name: Cache conda
         if: ${{ inputs.USE_CONDA }}
-        uses: actions/cache@v5
+        uses: actions/cache@v5.0.5
         env:
           # Increase this value to reset cache
           CACHE_NUMBER: 0
@@ -334,7 +334,7 @@ jobs:
 
       - name: Cache pooch data
         if: ${{ always() && inputs.CACHE_POOCH != '' }}
-        uses: actions/cache@v5
+        uses: actions/cache@v5.0.5
         env:
           # Increase this value to reset cache
           CACHE_NUMBER: 0
