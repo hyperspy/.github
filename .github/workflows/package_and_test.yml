@@ -72,7 +72,7 @@ jobs:
           git remote add upstream https://github.com/${{ inputs.ORGANISATION }}/${{ env.REPOSITORY_NAME }}.git
           git fetch upstream --tags
 
-      - uses: actions/setup-python@v6.2.0
+      - uses: actions/setup-python@v6.3.0
         name: Install Python
         with:
           python-version: ${{ env.PYTHON_VERSION }}
@@ -115,7 +115,7 @@ jobs:
       run:
         shell: bash -el {0}
     steps:
-      - uses: actions/setup-python@v6.2.0
+      - uses: actions/setup-python@v6.3.0
         name: Install Python
         with:
           python-version: ${{ env.PYTHON_VERSION }}
@@ -159,7 +159,7 @@ jobs:
           fi
 
       - name: Cache pip
-        uses: actions/cache@v5.0.5
+        uses: actions/cache@v6.1.0
         env:
           # Increase this value to reset cache
           CACHE_NUMBER: 0
@@ -186,7 +186,7 @@ jobs:
 
       - name: Cache pooch data
         if: ${{ inputs.CACHE_POOCH != '' }}
-        uses: actions/cache@v5.0.5
+        uses: actions/cache@v6.1.0
         env:
           # Increase this value to reset cache
           CACHE_NUMBER: 0
@@ -204,7 +204,7 @@ jobs:
       - name: Cache rosettasciio data
         # special case rosettasciio to cache the test data
         if: ${{ inputs.module_name == 'rsciio' }}
-        uses: actions/cache@v5.0.5
+        uses: actions/cache@v6.1.0
         env:
           # Increase this value to reset cache
           CACHE_NUMBER: 0

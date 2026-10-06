@@ -95,7 +95,7 @@ jobs:
           git fetch upstream --tags
 
       - name: Cache pip
-        uses: actions/cache@v5.0.5
+        uses: actions/cache@v6.1.0
         env:
           # Increase this value to reset cache
           CACHE_NUMBER: 0
@@ -126,14 +126,14 @@ jobs:
           sudo apt-get install libxcb-xinerama0
           sudo apt-get install xvfb
 
-      - uses: actions/setup-python@v6.2.0
+      - uses: actions/setup-python@v6.3.0
         name: Install Python
         with:
           python-version: '3.12'
 
       - name: Setup Ollama
         if: ${{ inputs.SETUP_OLLAMA }}
-        uses: ai-action/setup-ollama@195af6b8b8de746639b2ce7ffdba1c0ae70970d8
+        uses: ai-action/setup-ollama@591531fff1153f90ea7a512c1c528231856f1036
 
       - name: Install library
         if: ${{ inputs.install_dependencies_only != true }}
@@ -161,7 +161,7 @@ jobs:
 
       - name: Cache doc build
         if: ${{ inputs.CACHE_GALLERY_EXAMPLES }}
-        uses: actions/cache@v5.0.5
+        uses: actions/cache@v6.1.0
         env:
           # Increase this value to reset cache
           CACHE_NUMBER: 0
@@ -195,7 +195,7 @@ jobs:
 
       - name: Cache pooch
         if: ${{ inputs.CACHE_POOCH != ''}}
-        uses: actions/cache@v5.0.5
+        uses: actions/cache@v6.1.0
         env:
           # Increase this value to reset cache
           CACHE_NUMBER: 0
