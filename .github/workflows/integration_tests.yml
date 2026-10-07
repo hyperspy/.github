@@ -280,10 +280,7 @@ jobs:
         run: |
           for ext in $(echo "${{ inputs.EXTENSIONS }}" | tr ' ' '\n'); do
             if [[ "$ext" == "exspy" && "${{ env.REPOSITORY_NAME }}" != "exspy" ]]; then
-              # workaround for zenodo rate limits
-              # https://github.com/hyperspy/exspy/pull/156
-              # pip install "exspy @ git+https://github.com/hyperspy/exspy.git"
-              pip install "exspy @ git+https://github.com/ericpre/exspy.git@rate_limit_zenodo"
+              pip install "exspy @ git+https://github.com/hyperspy/exspy.git"
             elif [[ "$ext" == "holospy" && "${{ env.REPOSITORY_NAME }}" != "holospy" ]]; then
               pip install "holospy @ git+https://github.com/hyperspy/holospy.git"
             elif [[ "$ext" == "hyperspy-gui-ipywidgets" && "${{ env.REPOSITORY_NAME }}" != "hyperspy_gui_ipywidgets" ]]; then
@@ -383,10 +380,8 @@ jobs:
         id: hyperspy_tests
         run: |
           # https://github.com/hyperspy/hyperspy/issues/3536
-          # Fixed in https://github.com/hyperspy/hyperspy/pull/3554
           # skip test_missing_analytical_gradient and test_EELSModel_saving until exspy is released with the "_download_GOS_files" function
-          # https://github.com/hyperspy/hyperspy-extensions-list/issues/90
-          pytest --pyargs hyperspy ${{ env.PYTEST_ARGS }} ${{ env.PYTEST_LOG_ARGS }} -k "not test_arpack and not map_values_std_isset and not test_missing_analytical_gradient and not test_EELSModel_saving and not _units_error and not test_offset_as_quantity_setter_string_no_units"
+          pytest --pyargs hyperspy ${{ env.PYTEST_ARGS }} ${{ env.PYTEST_LOG_ARGS }} -k "not test_arpack and not test_missing_analytical_gradient and not test_EELSModel_saving"
 
       - name: Report HyperSpy test failures as GitHub Issue
         if: |
@@ -405,12 +400,8 @@ jobs:
         working-directory: ${{ runner.temp }}
         id: rosettasciio_tests
         run: |
-          # mrcz doesn't support python 3.12 and above because of dependence on distutils
-          # https://github.com/em-MRCZ/python-mrcz/pull/16
-          # distutils is vendored in setuptools, which can be misleading 
           # pyusid doesn't support numpy 2
-          # blockfile: https://github.com/hyperspy/rosettasciio/pull/527
-          pytest --pyargs rsciio ${{ env.PYTEST_ARGS }} ${{ env.PYTEST_LOG_ARGS }} -k "not test_mrcz.py and not test_usid.py and not test_blockfile.py"
+          pytest --pyargs rsciio ${{ env.PYTEST_ARGS }} ${{ env.PYTEST_LOG_ARGS }} -k "not test_usid.py"
 
       - name: Report RosettaSciIO test failures as GitHub Issue
         if: |
