@@ -1,0 +1,16 @@
+- id: check-ai-co-author
+  name: Block Co-authored-by AI trailers
+  description: "Rejects Co-authored-by trailers naming AI tools; use Assisted-by: <tool>:<model>."
+  entry: scripts/check-ai-co-author.py
+  language: script
+  stages: [commit-msg]
+  always_run: true
+  pass_filenames: true
+- id: check-agents-policy
+  name: Pin the HyperSpy AI policy block in AGENTS.md
+  description: Verifies (and with --fix inserts/refreshes) the pinned policy block from AI-POLICY.md in the root AGENTS.md.
+  entry: scripts/check-agents-policy.py
+  language: script
+  files: ^AGENTS\.md$
+  pass_filenames: true
+  args: [--fix]

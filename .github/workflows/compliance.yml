@@ -1,0 +1,124 @@
+name: Compliance (shared)
+
+on:
+  workflow_call:
+    inputs:
+      tooling_repo:
+        description: Repository holding the shared compliance scripts and AI-POLICY.md
+        type: string
+        default: hyperspy/.github
+      tooling_ref:
+        description: Git ref of tooling_repo to use (tag, branch or SHA)
+        type: string
+        default: v1
+      pyproject:
+        description: Path to pyproject.toml used to derive towncrier settings
+        type: string
+        default: pyproject.toml
+      source_dirs:
+        description: Space-separated source directories whose .py changes require a changelog fragment (empty = derive from [tool.towncrier])
+        type: string
+        default: ''
+      changelog_dir:
+        description: Changelog fragment directory (empty = derive from [tool.towncrier].directory)
+        type: string
+        default: ''
+      check_changelog:
+        type: boolean
+        default: true
+      check_agents_policy:
+        type: boolean
+        default: true
+      agents_file:
+        description: Root AGENTS.md that must carry the pinned policy block
+        type: string
+        default: AGENTS.md
+
+permissions:
+  contents: read
+
+jobs:
+  ai-trailers:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/checkout@v4
+        with:
+          repository: ${{ inputs.tooling_repo }}
+          ref: ${{ inputs.tooling_ref }}
+          path: .hyperspy-github
+      - name: Resolve commit range
+        id: range
+        shell: bash
+        run: |
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            echo "mode=pr" >> "$GITHUB_OUTPUT"
+            echo "base=${{ github.event.pull_request.base.sha }}" >> "$GITHUB_OUTPUT"
+            echo "head=${{ github.event.pull_request.head.sha }}" >> "$GITHUB_OUTPUT"
+          elif [ "${{ github.event.before }}" = "0000000000000000000000000000000000000000" ] || [ -z "${{ github.event.before }}" ]; then
+            echo "mode=skip" >> "$GITHUB_OUTPUT"
+          else
+            echo "mode=push" >> "$GITHUB_OUTPUT"
+            echo "base=${{ github.event.before }}" >> "$GITHUB_OUTPUT"
+            echo "head=${{ github.event.after }}" >> "$GITHUB_OUTPUT"
+          fi
+      - name: Check for prohibited Co-authored-by AI trailers
+        if: steps.range.outputs.mode == 'pr'
+        shell: bash
+        run: python3 .hyperspy-github/scripts/ci-check-ai-trailers.py "${{ steps.range.outputs.base }}" "${{ steps.range.outputs.head }}"
+      - name: Check pushed commits (warning only)
+        if: steps.range.outputs.mode == 'push'
+        shell: bash
+        run: python3 .hyperspy-github/scripts/ci-check-ai-trailers.py "${{ steps.range.outputs.base }}" "${{ steps.range.outputs.head }}" || echo "::warning::Pushed commits contain prohibited AI Co-authored-by trailers (or the range was not fully reachable)."
+      - name: Nothing to check
+        if: steps.range.outputs.mode == 'skip'
+        run: echo "::notice::New branch push - no commit range to check."
+
+  changelog:
+    if: ${{ inputs.check_changelog }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/checkout@v4
+        with:
+          repository: ${{ inputs.tooling_repo }}
+          ref: ${{ inputs.tooling_ref }}
+          path: .hyperspy-github
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Check for changelog entry on source changes
+        shell: bash
+        env:
+          SOURCE_DIRS: ${{ inputs.source_dirs }}
+          CHANGELOG_DIR: ${{ inputs.changelog_dir }}
+          PYPROJECT: ${{ inputs.pyproject }}
+        run: |
+          if [ "${{ github.event_name }}" != "pull_request" ]; then
+            echo "::notice::Changelog check runs on pull requests only."; exit 0
+          fi
+          args=(--pyproject "$PYPROJECT")
+          for d in $SOURCE_DIRS; do args+=(--source-dir "$d"); done
+          [ -n "$CHANGELOG_DIR" ] && args+=(--changelog-dir "$CHANGELOG_DIR")
+          python3 .hyperspy-github/scripts/ci-check-changelog.py "${args[@]}" "${{ github.event.pull_request.base.sha }}" "${{ github.event.pull_request.head.sha }}"
+
+  agents-policy:
+    if: ${{ inputs.check_agents_policy }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/checkout@v4
+        with:
+          repository: ${{ inputs.tooling_repo }}
+          ref: ${{ inputs.tooling_ref }}
+          path: .hyperspy-github
+      - name: Verify the pinned HyperSpy AI policy block
+        shell: bash
+        run: python3 .hyperspy-github/scripts/check-agents-policy.py --policy .hyperspy-github/AI-POLICY.md "${{ inputs.agents_file }}"
