@@ -1,0 +1,54 @@
+name: Self-test
+on: [push, pull_request]
+permissions:
+  contents: read
+
+jobs:
+  pytest:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ['3.9', '3.12']
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Install test dependencies
+        run: |
+          python3 -m pip install --upgrade pip
+          pip install -r tests/requirements.txt
+          pip install ruff
+      - name: ruff (3.12 only)
+        if: matrix.python-version == '3.12'
+        run: ruff check scripts tests
+      - name: pytest
+        run: python3 -m pytest -q tests
+
+  smoke:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install pre-commit
+        run: |
+          python3 -m pip install --upgrade pip
+          pip install pre-commit
+      - name: check-agents-policy against AI-POLICY.md and AGENTS.md
+        run: python3 scripts/check-agents-policy.py --policy AI-POLICY.md AGENTS.md
+      - name: synthetic negative trailer proof
+        run: |
+          tmp=$(mktemp -d) && git -C "$tmp" init -q && git -C "$tmp" -c user.email=t@t -c user.name=t commit -q --allow-empty -m base && git -C "$tmp" -c user.email=t@t -c user.name=t commit -q --allow-empty -m bad -m 'Co-authored-by: Claude <noreply@anthropic.com>' && if (cd "$tmp" && python3 "$GITHUB_WORKSPACE/scripts/ci-check-ai-trailers.py" HEAD~1 HEAD); then echo 'CI scan did not reject AI co-author' >&2; exit 1; fi
+      - name: PR trailer scan
+        if: github.event_name == 'pull_request'
+        run: python3 scripts/ci-check-ai-trailers.py "${{ github.event.pull_request.base.sha }}" "${{ github.event.pull_request.head.sha }}"
+      - name: hook proof (bad - must reject)
+        run: |
+          printf 'x\n\nCo-authored-by: Claude <noreply@anthropic.com>\n' > /tmp/bad && if pre-commit try-repo . check-ai-co-author --hook-stage commit-msg --commit-msg-filename /tmp/bad; then echo 'hook did not reject AI co-author' >&2; exit 1; fi
+      - name: hook proof (ok - must accept)
+        run: |
+          printf 'x\n\nAssisted-by: Claude:claude-opus\n' > /tmp/ok && pre-commit try-repo . check-ai-co-author --hook-stage commit-msg --commit-msg-filename /tmp/ok
