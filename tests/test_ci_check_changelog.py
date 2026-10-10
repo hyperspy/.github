@@ -59,6 +59,16 @@ name = "nope"
 """
 
 
+try:
+    import tomllib
+except ImportError:
+    tomllib = None
+
+requires_tomllib = pytest.mark.skipif(
+    tomllib is None, reason="pyproject-derivation tests need tomllib (Python >= 3.11)"
+)
+
+
 def git_init(path: Path) -> None:
     subprocess.run(
         ["git", "init", "-q", str(path)],
@@ -155,6 +165,7 @@ def repo(tmp_path: Path) -> Path:
     return tmp_path
 
 
+@requires_tomllib
 def test_hyperspy_style_package(repo: Path):
     (repo / "pyproject.toml").write_text(HYPERSPY_PYPROJECT)
     commit(
@@ -166,6 +177,7 @@ def test_hyperspy_style_package(repo: Path):
     assert run_script(repo, "--pyproject", "pyproject.toml", base, head) == 0
 
 
+@requires_tomllib
 def test_hyperspy_style_missing_fragment(repo: Path):
     (repo / "pyproject.toml").write_text(HYPERSPY_PYPROJECT)
     commit(repo, "add source", {"hyperspy/foo.py": "x = 1\n"})
@@ -173,6 +185,7 @@ def test_hyperspy_style_missing_fragment(repo: Path):
     assert run_script(repo, "--pyproject", "pyproject.toml", base, head) == 1
 
 
+@requires_tomllib
 def test_exspy_style_package_dir(repo: Path):
     (repo / "pyproject.toml").write_text(EXSPY_PYPROJECT)
     commit(
@@ -184,6 +197,7 @@ def test_exspy_style_package_dir(repo: Path):
     assert run_script(repo, "--pyproject", "pyproject.toml", base, head) == 0
 
 
+@requires_tomllib
 def test_both_keys_nests_package_dir(repo: Path):
     (repo / "pyproject.toml").write_text(BOTH_KEYS_PYPROJECT)
     commit(repo, "add source", {"src/hyperspy/foo.py": "x = 1\n"})
@@ -192,6 +206,7 @@ def test_both_keys_nests_package_dir(repo: Path):
     assert run_script(repo, "--pyproject", "pyproject.toml", base, head) == 1
 
 
+@requires_tomllib
 def test_equal_keys_still_nest(repo: Path):
     (repo / "pyproject.toml").write_text(EQUAL_KEYS_PYPROJECT)
     commit(repo, "add source", {"pkg/pkg/foo.py": "x = 1\n"})
@@ -223,6 +238,7 @@ def test_explicit_source_dir_override(repo: Path):
     )
 
 
+@requires_tomllib
 def test_tests_directory_excluded(repo: Path):
     (repo / "pyproject.toml").write_text(HYPERSPY_PYPROJECT)
     commit(repo, "only tests", {"hyperspy/tests/test_x.py": "def t():\n    pass\n"})
@@ -230,6 +246,7 @@ def test_tests_directory_excluded(repo: Path):
     assert run_script(repo, "--pyproject", "pyproject.toml", base, head) == 0
 
 
+@requires_tomllib
 def test_docs_only_not_source(repo: Path):
     (repo / "pyproject.toml").write_text(HYPERSPY_PYPROJECT)
     commit(repo, "docs", {"doc/index.rst": "hi\n"})
@@ -237,6 +254,7 @@ def test_docs_only_not_source(repo: Path):
     assert run_script(repo, "--pyproject", "pyproject.toml", base, head) == 0
 
 
+@requires_tomllib
 def test_readme_fragment_does_not_count(repo: Path):
     (repo / "pyproject.toml").write_text(HYPERSPY_PYPROJECT)
     commit(
@@ -251,6 +269,7 @@ def test_readme_fragment_does_not_count(repo: Path):
     assert run_script(repo, "--pyproject", "pyproject.toml", base, head) == 1
 
 
+@requires_tomllib
 def test_deleted_fragment_still_missing(repo: Path):
     (repo / "pyproject.toml").write_text(HYPERSPY_PYPROJECT)
     commit(
@@ -273,6 +292,7 @@ def test_deleted_fragment_still_missing(repo: Path):
     assert run_script(repo, "--pyproject", "pyproject.toml", base, head) == 1
 
 
+@requires_tomllib
 def test_helper_extension_ignored(repo: Path):
     (repo / "pyproject.toml").write_text(HYPERSPY_PYPROJECT)
     commit(
@@ -287,6 +307,7 @@ def test_helper_extension_ignored(repo: Path):
     assert run_script(repo, "--pyproject", "pyproject.toml", base, head) == 1
 
 
+@requires_tomllib
 def test_diverged_base_excluded(repo: Path):
     # Base branch gains a source change AFTER the PR branch point; the PR
     # itself touches only docs -> merge-base diff must not count it.
@@ -313,6 +334,7 @@ def test_diverged_base_excluded(repo: Path):
     assert run_script(repo, "--pyproject", "pyproject.toml", base, head) == 0
 
 
+@requires_tomllib
 def test_missing_pyproject_without_source_dir(repo: Path, tmp_path):
     missing = tmp_path / "elsewhere"
     missing.mkdir()

@@ -44,21 +44,28 @@ DEFAULT_TYPES = [
 ]
 
 
-def _load_towncrier(pyproject: str) -> dict[str, Any] | None:
-    """Return the ``[tool.towncrier]`` table, or None when unreadable."""
+def _load_towncrier(pyproject: str, required: bool = True) -> dict[str, Any] | None:
+    """Return the ``[tool.towncrier]`` table; None when unreadable."""
     try:
-        import tomllib
-    except ImportError:  # pragma: no cover - exercised on Python < 3.11
-        print(
-            "ERROR: Python >= 3.11 required for --pyproject parsing;"
-            " pass --source-dir and --changelog-dir explicitly",
-            file=sys.stderr,
-        )
-        return None
+        import tomllib  # Python >= 3.11
+    except ImportError:
+        if required:
+            print(
+                "ERROR: Python >= 3.11 required for --pyproject parsing;"
+                " pass --source-dir and --changelog-dir explicitly",
+                file=sys.stderr,
+            )
+            return None
+        return {}  # flags cover the config; degrade to defaults
     path = Path(pyproject)
     if not path.is_file():
-        print(f"ERROR: {path} not found", file=sys.stderr)
-        return None
+        if required:
+            print(
+                f"ERROR: {path} not found",
+                file=sys.stderr,
+            )
+            return None
+        return {}
     data = tomllib.loads(path.read_text(encoding="utf-8"))
     return data.get("tool", {}).get("towncrier", {})
 
@@ -69,11 +76,16 @@ def _resolve_config(
     changelog_dir: str | None,
 ) -> tuple[list[str], str, list[str]] | None:
     """Resolve (source_dirs, changelog_dir, fragment_types) from args + towncrier."""
-    config: dict[str, Any] | None = {}
+    if source_dirs and changelog_dir:
+        # Explicit flags cover the config: no towncrier parsing needed at all
+        # (keeps the script usable on Python < 3.11 without tomllib).
+        return source_dirs, changelog_dir.rstrip("/"), DEFAULT_TYPES
+    config: dict[str, Any] = {}
     if pyproject and Path(pyproject).is_file():
-        config = _load_towncrier(pyproject)
-        if config is None:  # ImportError already reported
+        loaded = _load_towncrier(pyproject, required=not (source_dirs or changelog_dir))
+        if loaded is None:
             return None
+        config = loaded
     types = [
         entry["directory"]
         for entry in config.get("type", [])
