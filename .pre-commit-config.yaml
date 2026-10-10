@@ -1,0 +1,25 @@
+default_install_hook_types: [pre-commit, commit-msg]
+
+repos:
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.16.10
+    hooks:
+      - id: ruff-check
+        args: [--fix]
+        files: ^(scripts|tests)/.*\.py$
+      - id: ruff-format
+        files: ^(scripts|tests)/.*\.py$
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v6.0.0
+    hooks:
+      - id: check-yaml
+      - id: end-of-file-fixer
+        exclude: ^README\.md$
+  - repo: local
+    hooks:
+      - id: interim-ai-co-author-guard
+        name: Block AI Co-authored-by (interim)
+        language: pygrep
+        entry: '^Co-authored-by:.*(claude|copilot|cursor|codex|gemini|aider|cline|windsurf|opencode|anthropic|openai|gpt|qwen|deepseek|mistral)'
+        args: [-i]
+        stages: [commit-msg]
