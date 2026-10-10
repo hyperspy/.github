@@ -23,3 +23,19 @@ repos:
         entry: '^Co-authored-by:.*(claude|copilot|cursor|codex|gemini|aider|cline|windsurf|opencode|anthropic|openai|gpt|qwen|deepseek|mistral)'
         args: [-i]
         stages: [commit-msg]
+  - repo: local
+    hooks:
+      - id: check-ai-co-author
+        name: Block Co-authored-by AI trailers
+        language: script
+        entry: scripts/check-ai-co-author.py
+        stages: [commit-msg]
+        always_run: true
+        pass_filenames: true
+      - id: check-agents-policy
+        name: Pin the HyperSpy AI policy block in AGENTS.md
+        language: script
+        entry: scripts/check-agents-policy.py
+        files: ^AGENTS\.md$
+        pass_filenames: true
+        args: [--fix, --policy, AI-POLICY.md]
