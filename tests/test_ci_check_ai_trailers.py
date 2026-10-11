@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import shutil
 import subprocess
 import sys
 from collections.abc import Callable
@@ -130,3 +131,18 @@ def test_human_co_author_is_not_flagged(git_repo):
     )
     result = run_script(git_repo.repo, [c1, c2])
     assert result.returncode == 0, result.stderr
+
+
+def test_missing_shared_module_exits_2_with_explanation(tmp_path: Path):
+    """Copied without scripts/hyperspy_ai_patterns.py, the script exits 2."""
+    isolated = tmp_path / "isolated"
+    isolated.mkdir()
+    shutil.copy(SCRIPT, isolated / "ci-check-ai-trailers.py")
+    proc = subprocess.run(
+        [sys.executable, str(isolated / "ci-check-ai-trailers.py"), "--help"],
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    assert proc.returncode == 2
+    assert "scripts/hyperspy_ai_patterns.py is required" in proc.stderr

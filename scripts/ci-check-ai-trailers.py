@@ -21,7 +21,6 @@ Exit codes:
 from __future__ import annotations
 
 import argparse
-import re
 import subprocess
 import sys
 from pathlib import Path
@@ -31,51 +30,16 @@ POLICY_URL = "https://github.com/hyperspy/.github/blob/main/AI-POLICY.md"
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 try:
-    from hyperspy_ai_patterns import (  # type: ignore[import-not-found]
-        AI_PATTERNS,
-        CO_AUTHORED_RE,
-        is_ai_co_author_line,
-    )
+    from hyperspy_ai_patterns import is_ai_co_author_line
 except ImportError:
-    # ---- INLINE FALLBACK -------------------------------------------------
-    # Mirror of scripts/hyperspy_ai_patterns.py; used only when the shared
-    # module is unavailable (e.g. the script is copied on its own).  Keep the
-    # semantics identical to the shared module.
-    AI_PATTERNS: list[str] = [
-        r"claude",
-        r"copilot",
-        r"cursor",
-        r"\bcodex\b",
-        r"gemini",
-        r"\baider\b",
-        r"\bcline\b",
-        r"windsurf",
-        r"\bopencode\b",
-        r"anthropic",
-        r"openai",
-        r"\bgpt\b",
-        r"\bqwen\b",
-        r"deepseek",
-        r"mistral",
-        r"\bamp\b",  # Sourcegraph Amp
-        r"amazon q",
-        r"noreply@anthropic\.com",
-        r"copilot@github\.com",
-        r"cursoragent@cursor\.com",
-        r"codex@openai\.com",
-        r"kilo ?code",
-    ]
-
-    CO_AUTHORED_RE = re.compile(r"^Co-authored-by:", re.IGNORECASE)
-
-    def is_ai_co_author_line(line: str) -> bool:
-        """Return True if ``line`` is a Co-authored-by trailer naming an AI tool."""
-        line = line.rstrip("\r")
-        if not CO_AUTHORED_RE.match(line):
-            return False
-        return any(re.search(p, line, re.IGNORECASE) for p in AI_PATTERNS)
-
-    # ---- END INLINE FALLBACK ---------------------------------------------
+    print(
+        "ERROR: scripts/hyperspy_ai_patterns.py is required by this script."
+        " Run it from a checkout of the whole hyperspy/.github repository"
+        " (CI checks the repository out into .hyperspy-github before"
+        " running it).",
+        file=sys.stderr,
+    )
+    sys.exit(2)
 
 
 def base_is_reachable(base: str) -> bool:
