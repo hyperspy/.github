@@ -126,14 +126,14 @@ jobs:
           sudo apt-get install libxcb-xinerama0
           sudo apt-get install xvfb
 
-      - uses: actions/setup-python@v6.3.0
+      - uses: actions/setup-python@v6
         name: Install Python
         with:
           python-version: '3.12'
 
       - name: Setup Ollama
         if: ${{ inputs.SETUP_OLLAMA }}
-        uses: ai-action/setup-ollama@591531fff1153f90ea7a512c1c528231856f1036
+        uses: ai-action/setup-ollama@4576d865148f824d2ba3a2a122ea26154fdbeb39
 
       - name: Install library
         if: ${{ inputs.install_dependencies_only != true }}
