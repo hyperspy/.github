@@ -42,7 +42,7 @@ on:
       DEPENDENCIES_DEV:
         # Dev version from https://anaconda.org/scientific-python-nightly-wheels/
         description: 'List of dependencies to install from scientific-python-nightly-wheels.'
-        default: '' # e.g. matplotlib scipy scikit-learn sympy h5py scikit-image 
+        default: '' # e.g. matplotlib scipy scikit-learn sympy h5py scikit-image
         type: string
       PLATFORM:
         description: 'The platform to run the tests on.'
@@ -95,7 +95,7 @@ jobs:
   integration_test:
     name: ${{ inputs.PLATFORM }} py${{ inputs.PYTHON_VERSION }} ${{ inputs.LABEL }}
     runs-on: ${{ inputs.PLATFORM }}
-    
+
     defaults:
       run:
         shell: bash -el {0}
@@ -105,7 +105,7 @@ jobs:
       RSCIIO_CACHE_POOCH_LABEL: ${{ inputs.RSCIIO_CACHE_POOCH_LABEL }}
     steps:
       - uses: actions/checkout@v7
-        with: 
+        with:
           fetch-depth: 0
           fetch-tags: true
 
@@ -354,7 +354,7 @@ jobs:
         run: |
           # overwrite the RSCIIO_CACHE_POOCH_LABEL to "main" to get the latest test data cache for the dev version of RosettaSciIO
           echo "RSCIIO_CACHE_POOCH_LABEL=main" >> $GITHUB_ENV
-          
+
       - uses: ssciwr/pooch-cache@v1
         if: ${{ env.REPOSITORY_NAME != 'rosettasciio' }}
         with:
@@ -541,9 +541,7 @@ jobs:
         working-directory: ${{ runner.temp }}
         id: kikuchipy_tests
         run: |
-          # test_not_allow_download_raises: https://github.com/pyxem/kikuchipy/issues/707
-          # test_lazy_decomposition, test_get_decomposition_model_lazy: https://github.com/pyxem/kikuchipy/pull/813
-          pytest --pyargs kikuchipy ${{ env.PYTEST_LOG_ARGS }} -k "not test_not_allow_download_raises and not test_lazy_decomposition and not test_get_decomposition_model_lazy"
+          pytest --pyargs kikuchipy ${{ env.PYTEST_LOG_ARGS }}
 
       - name: Report kikuchipy test failures as GitHub Issue
         if: |
