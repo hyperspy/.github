@@ -13,8 +13,8 @@ def test_hook_entry_is_portable_python() -> None:
     manifest = HOOK.parents[1] / ".pre-commit-hooks.yaml"
     manifest_text = manifest.read_text(encoding="utf-8")
 
-    assert "  language: python" in manifest_text
-    assert "  language: script" not in manifest_text
+    assert "  language: system" in manifest_text
+    assert "  language: python" not in manifest_text
     assert "  entry: python scripts/check-ai-co-author.py" in manifest_text
     assert not HOOK.read_text(encoding="utf-8").startswith("#!")
 

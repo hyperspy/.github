@@ -2,7 +2,7 @@
   name: Block Co-authored-by AI trailers
   description: "Rejects Co-authored-by trailers naming AI tools; use Assisted-by: <tool>:<model>."
   entry: python scripts/check-ai-co-author.py
-  language: python
+  language: system
   stages: [commit-msg]
   always_run: true
   pass_filenames: true
@@ -10,7 +10,7 @@
   name: Pin the HyperSpy AI policy block in AGENTS.md
   description: Verifies (and with --fix inserts/refreshes) the pinned policy block from AI-POLICY.md in the root AGENTS.md.
   entry: python scripts/check-agents-policy.py
-  language: python
+  language: system
   files: ^AGENTS\.md$
   pass_filenames: true
   args: [--fix]
