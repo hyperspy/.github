@@ -381,7 +381,9 @@ jobs:
         run: |
           # https://github.com/hyperspy/hyperspy/issues/3536
           # skip test_missing_analytical_gradient and test_EELSModel_saving until exspy is released with the "_download_GOS_files" function
-          pytest --pyargs hyperspy ${{ env.PYTEST_ARGS }} ${{ env.PYTEST_LOG_ARGS }} -k "not test_arpack and not test_missing_analytical_gradient and not test_EELSModel_saving"
+          # HyperSpy 2.5 expects non-uniform MSA saving to fail, but RosettaSciIO dev supports it.
+          # Remove this exclusion once the HyperSpy release no longer has the outdated expectation.
+          pytest --pyargs hyperspy ${{ env.PYTEST_ARGS }} ${{ env.PYTEST_LOG_ARGS }} -k "not test_arpack and not test_missing_analytical_gradient and not test_EELSModel_saving and not test_io_nonuniform"
 
       - name: Report HyperSpy test failures as GitHub Issue
         if: |
