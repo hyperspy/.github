@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 """CI check: scan all commits in a pull request for AI ``Co-authored-by`` trailers.
 
 This is the CI counterpart of ``scripts/check-ai-co-author.py`` (the commit-msg

@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import os
 import shutil
 import subprocess
 import sys
@@ -74,9 +75,10 @@ def run_script(repo: Path, args: list[str]) -> subprocess.CompletedProcess:
     )
 
 
-def test_script_is_executable():
+def test_script_is_not_executable_without_shebang():
     assert SCRIPT.exists()
-    assert SCRIPT.stat().st_mode & 0o111, "script must be chmod 755"
+    if os.name == "posix":
+        assert not SCRIPT.stat().st_mode & 0o111
 
 
 def test_range_spanning_violator_exits_1_and_lists_line(history):

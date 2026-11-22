@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 """Check that AGENTS.md files pin the canonical HyperSpy AI policy block.
 
 Reads the canonical block (between the BEGIN and END sentinels) from
@@ -32,10 +31,7 @@ MSG_UPDATED = (
     "Updated {path}: HyperSpy AI policy block inserted/refreshed"
     " - stage it and commit again"
 )
-MSG_RERUN = (
-    "run: pre-commit run check-agents-policy --all-files"
-    "  (or python3 check-agents-policy.py --fix {path})"
-)
+MSG_RERUN = "run: python3 check-agents-policy.py --fix {path}"
 
 EXIT_OK = 0
 EXIT_DIFF = 1

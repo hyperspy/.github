@@ -1,0 +1,21 @@
+name: Schedule AI policy updates
+
+on:
+  schedule:
+    # runs everyday at 3:17 UTC
+    - cron: "17 3 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+
+concurrency:
+  group: ai-policy-update-${{ github.repository }}
+  cancel-in-progress: false
+
+jobs:
+  update-policy:
+    uses: hyperspy/.github/.github/workflows/compliance.yml@main
+    with:
+      update_policy: true

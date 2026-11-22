@@ -27,15 +27,8 @@ repos:
     hooks:
       - id: check-ai-co-author
         name: Block Co-authored-by AI trailers
-        language: script
-        entry: scripts/check-ai-co-author.py
+        language: system
+        entry: python scripts/check-ai-co-author.py
         stages: [commit-msg]
         always_run: true
         pass_filenames: true
-      - id: check-agents-policy
-        name: Pin the HyperSpy AI policy block in AGENTS.md
-        language: script
-        entry: scripts/check-agents-policy.py
-        files: ^AGENTS\.md$
-        pass_filenames: true
-        args: [--fix, --policy, AI-POLICY.md]

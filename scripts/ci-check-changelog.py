@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 """CI check: require a changelog entry when package source files are modified.
 
 Repositories in the HyperSpy organisation use towncrier for changelog
