@@ -52,6 +52,19 @@ four-step process described below.
 - `.github/workflows/self-test.yml` - runs the test suite and an end-to-end
   smoke of the hooks and CI scripts on every pull request to this repository.
 
+### Security work guidance
+
+- [`SECURITY-PLAYBOOK.md`](SECURITY-PLAYBOOK.md) - the canonical ecosystem guide
+  to intake, ownership, minimum fixes, verification, CI/CD, disclosure, residual
+  risk, and post-release learning.
+- [`SECURITY-AGENT-BRIEF.md`](SECURITY-AGENT-BRIEF.md) - a copy-paste template
+  for authorizing and verifying bounded AI-assisted security work.
+- [`SECURITY-LESSONS.md`](SECURITY-LESSONS.md) - a public case-study index and
+  template, with general references kept separate from I/O-specific examples.
+
+These resources centralize decision discipline, not security implementation
+code. Fixes and tests remain in the repository that owns the behavior.
+
 ## Adopting the AI policy in a repository
 
 The shared tooling is one repository, one hook list, and one workflow caller.
