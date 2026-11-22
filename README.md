@@ -44,11 +44,14 @@ four-step process described below.
     the pinned policy block in `AGENTS.md`.
   - `ci-check-changelog.py` - towncrier-aware check that a changelog fragment
     is present when package source files change.
-- `.pre-commit-hooks.yaml` - the manifest that publishes the two hooks
-  (`check-ai-co-author`, `check-agents-policy`) to consumers that add this
+- `.pre-commit-hooks.yaml` - the manifest that publishes the
+  `check-ai-co-author` hook to consumers that add this
   repository to their `repos:` list.
-- `.github/workflows/compliance.yml` - the reusable compliance workflow with
-  three jobs: `ai-trailers`, `changelog`, and `agents-policy`.
+- `.github/workflows/compliance.yml` - reusable workflow for compliance checks
+  and opt-in AI-policy updates. Normal jobs are `ai-trailers`, `changelog`,
+  and `agents-policy`; `ai-policy-update` runs only when explicitly enabled.
+- `.github/workflows/update-ai-policy-schedule.yml` - daily caller for this
+  repository's policy updates.
 - `.github/workflows/self-test.yml` - runs the test suite and an end-to-end
   smoke of the hooks and CI scripts on every pull request to this repository.
 
@@ -69,14 +72,11 @@ repos:
     rev: v1.0.0
     hooks:
       - id: check-ai-co-author
-      - id: check-agents-policy
 ```
 
-The two hooks ship from this repository's `.pre-commit-hooks.yaml`. The
-`check-ai-co-author` hook runs at the `commit-msg` stage and rejects commits
-that carry a prohibited AI `Co-authored-by:` trailer; the
-`check-agents-policy` hook verifies the pinned AI policy block in the
-repository's root `AGENTS.md`.
+The `check-ai-co-author` hook ships from this repository's
+`.pre-commit-hooks.yaml` and runs at the `commit-msg` stage. It rejects commits
+that carry a prohibited AI `Co-authored-by:` trailer.
 
 ### 2. Add the compliance workflow caller
 
@@ -99,19 +99,42 @@ The workflow checks out this repository at the floating `v1` tag (configurable
 via the `tooling_repo` / `tooling_ref` inputs, see below), so a consumer
 update is a one-line bump of the `uses:` reference.
 
-### 3. Insert the pinned policy block into AGENTS.md
+### 3. Keep the pinned policy block synchronized
 
-Run the hook to insert the block automatically:
+Add a thin caller workflow to schedule policy synchronization daily:
 
-```bash
-pre-commit run check-agents-policy --files AGENTS.md
+```yaml
+name: Schedule AI policy updates
+on:
+  schedule:
+    - cron: "17 3 * * *"
+  workflow_dispatch:
+permissions:
+  contents: write
+  pull-requests: write
+concurrency:
+  group: ai-policy-update-${{ github.repository }}
+  cancel-in-progress: false
+jobs:
+  update-policy:
+    uses: hyperspy/.github/.github/workflows/compliance.yml@v1
+    with:
+      update_policy: true
 ```
 
-The first run exits non-zero: `check-agents-policy` writes (or refreshes) the
-sentinel-delimited block under the `<!-- MANUAL: ... -->` marker in
-`AGENTS.md`, creating the marker if the file does not yet contain it. Stage
-the modified `AGENTS.md` and re-run the same command; it now exits zero.
-Commit the result.
+The existing `compliance.yml` reusable workflow is kept as the only
+implementation workflow. The schedule caller passes `update_policy: true` to
+enable the opt-in policy-update job and grants write permissions only to that
+job chain. Normal pull-request and push callers remain read-only.
+
+The policy update uses a fixed `ai-policy-update` branch and opens or updates
+a ready-to-review pull request containing only `AGENTS.md` changes. No direct commit is
+made to `main`.
+
+The workflow also accepts `policy_branch` and `policy_pr_title` inputs.
+GITHUB_TOKEN-created pull requests may require workflow approval before CI runs;
+use a GitHub App installation token or fine-grained PAT if PR workflows must
+run without approval.
 
 ### 4. Require the status checks
 
@@ -141,6 +164,9 @@ repository at the chosen ref.
 | `check_changelog`    | boolean | `true`             | Run the `changelog` job. |
 | `check_agents_policy`| boolean | `true`             | Run the `agents-policy` job. |
 | `agents_file`        | string  | `AGENTS.md`        | Root `AGENTS.md` that must carry the pinned policy block. |
+| `update_policy`      | boolean | `false`            | Run only the policy-update job instead of normal compliance jobs. |
+| `policy_branch`      | string  | `ai-policy-update` | Fixed branch used for policy update pull requests. |
+| `policy_pr_title`    | string  | `Update pinned AI policy block` | Title for the policy update pull request. |
 
 ## Testing changes before a tag
 

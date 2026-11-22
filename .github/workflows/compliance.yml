@@ -33,12 +33,25 @@ on:
         description: Root AGENTS.md that must carry the pinned policy block
         type: string
         default: AGENTS.md
+      update_policy:
+        description: Update AGENTS.md and open or update a policy PR instead of running normal compliance checks
+        type: boolean
+        default: false
+      policy_branch:
+        description: Fixed branch used for policy update pull requests
+        type: string
+        default: ai-policy-update
+      policy_pr_title:
+        description: Title for the policy update pull request
+        type: string
+        default: Update pinned AI policy block
 
 permissions:
   contents: read
 
 jobs:
   ai-trailers:
+    if: ${{ !inputs.update_policy }}
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
@@ -78,7 +91,7 @@ jobs:
         run: echo "::notice::New branch push - no commit range to check."
 
   changelog:
-    if: ${{ inputs.check_changelog }}
+    if: ${{ !inputs.update_policy && inputs.check_changelog }}
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
@@ -109,7 +122,7 @@ jobs:
           python3 .hyperspy-github/scripts/ci-check-changelog.py "${args[@]}" "${{ github.event.pull_request.base.sha }}" "${{ github.event.pull_request.head.sha }}"
 
   agents-policy:
-    if: ${{ inputs.check_agents_policy }}
+    if: ${{ !inputs.update_policy && inputs.check_agents_policy }}
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
@@ -122,3 +135,38 @@ jobs:
       - name: Verify the pinned HyperSpy AI policy block
         shell: bash
         run: python3 .hyperspy-github/scripts/check-agents-policy.py --policy .hyperspy-github/AI-POLICY.md "${{ inputs.agents_file }}"
+
+  ai-policy-update:
+    if: ${{ inputs.update_policy }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: write
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+      - uses: actions/checkout@v7
+        with:
+          repository: ${{ inputs.tooling_repo }}
+          ref: ${{ inputs.tooling_ref }}
+          path: .hyperspy-github
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+      - name: Refresh the pinned policy block
+        env:
+          AGENTS_FILE: ${{ inputs.agents_file }}
+        run: python3 .hyperspy-github/scripts/check-agents-policy.py --policy .hyperspy-github/AI-POLICY.md --fix "$AGENTS_FILE"
+      - name: Create or update policy pull request
+        uses: peter-evans/create-pull-request@v8
+        with:
+          add-paths: ${{ inputs.agents_file }}
+          base: ${{ github.event.repository.default_branch }}
+          branch: ${{ inputs.policy_branch }}
+          commit-message: "Update pinned AI policy block"
+          delete-branch: true
+          draft: false
+          title: ${{ inputs.policy_pr_title }}
+          body: Synchronize ${{ inputs.agents_file }} with the canonical HyperSpy AI policy block.

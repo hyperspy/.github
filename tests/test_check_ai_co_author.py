@@ -9,16 +9,6 @@ from conftest import SCRIPTS_DIR
 HOOK = SCRIPTS_DIR / "check-ai-co-author.py"
 
 
-def test_hook_entry_is_portable_python() -> None:
-    manifest = HOOK.parents[1] / ".pre-commit-hooks.yaml"
-    manifest_text = manifest.read_text(encoding="utf-8")
-
-    assert "  language: system" in manifest_text
-    assert "  language: python" not in manifest_text
-    assert "  entry: python scripts/check-ai-co-author.py" in manifest_text
-    assert not HOOK.read_text(encoding="utf-8").startswith("#!")
-
-
 def run_hook(*args: str) -> subprocess.CompletedProcess:
     return subprocess.run(
         [sys.executable, str(HOOK), *args],

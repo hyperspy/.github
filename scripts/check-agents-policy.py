@@ -31,10 +31,7 @@ MSG_UPDATED = (
     "Updated {path}: HyperSpy AI policy block inserted/refreshed"
     " - stage it and commit again"
 )
-MSG_RERUN = (
-    "run: pre-commit run check-agents-policy --all-files"
-    "  (or python3 check-agents-policy.py --fix {path})"
-)
+MSG_RERUN = "run: python3 check-agents-policy.py --fix {path}"
 
 EXIT_OK = 0
 EXIT_DIFF = 1

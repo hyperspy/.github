@@ -15,8 +15,9 @@ without copying any scripts.
 | File | What it is |
 | --- | --- |
 | `AI-POLICY.md` | Normative HyperSpy AI policy. Contains the pinned block embedded verbatim in every consumer's `AGENTS.md`. |
-| `.pre-commit-hooks.yaml` | Public hook manifest for `check-ai-co-author` (commit-msg stage) and `check-agents-policy` (pins the AI policy block in `AGENTS.md`). |
-| `.github/workflows/compliance.yml` | Reusable workflow. Three jobs: `ai-trailers`, `changelog`, `agents-policy`. |
+| `.pre-commit-hooks.yaml` | Public hook manifest for `check-ai-co-author` (commit-msg stage). |
+| `.github/workflows/compliance.yml` | Reusable workflow. Jobs: `ai-trailers`, `changelog`, `agents-policy`, and opt-in `ai-policy-update`. |
+| `.github/workflows/update-ai-policy-schedule.yml` | Daily caller that enables policy updates in `compliance.yml`. |
 | `.github/workflows/self-test.yml` | Internal CI: pytest + ruff, plus synthetic hook and script smoke tests against a scratch repo. |
 | `scripts/*.py` | Stdlib-only enforcement scripts (commit-msg hook, CI trailer scan, changelog-fragment check, agents-policy pin checker, shared AI-pattern module). |
 | `tests/` | pytest coverage for every script. |
