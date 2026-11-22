@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 """Check that AGENTS.md files pin the canonical HyperSpy AI policy block.
 
 Reads the canonical block (between the BEGIN and END sentinels) from

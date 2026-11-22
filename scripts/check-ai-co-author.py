@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 """Commit-msg hook: reject Co-authored-by trailers referencing AI tools.
 
 HyperSpy uses ``Assisted-by:`` for AI attribution.  ``Co-authored-by:`` is
