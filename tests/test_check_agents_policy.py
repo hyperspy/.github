@@ -42,8 +42,9 @@ def run(policy: Path, files, fix: bool = False):
     return mod.main(argv)
 
 
-def test_script_is_executable():
-    assert os.access(SCRIPT, os.X_OK)
+def test_script_is_not_executable_without_shebang():
+    if os.name == "posix":
+        assert not os.access(SCRIPT, os.X_OK)
 
 
 def test_help_exit_zero():
